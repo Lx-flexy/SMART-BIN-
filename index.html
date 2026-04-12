@@ -935,15 +935,20 @@ function initFirebase() {
     fbApp  = firebase.initializeApp(FIREBASE_CONFIG);
     fbAuth = firebase.auth();
     fbDb   = firebase.database();
+
     fbAuth.onAuthStateChanged(user => {
       if (user) enterDashboard(user.email, false);
-      else      showScreen("login");
+      else showScreen("login");
     });
   } catch(e) {
     console.warn("Firebase init failed:", e);
     showScreen("login");
   }
 }
+
+// 🔥 YE LINE ADD KA
+
+
 
 /* ───────────────────────────────────────────
    LOGIN / LOGOUT
