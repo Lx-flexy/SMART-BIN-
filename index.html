@@ -1078,17 +1078,31 @@ function listenFirebase() {
 /* ───────────────────────────────────────────
    DEMO LIVE SIMULATION
    ─────────────────────────────────────────── */
+function rand(min, range) {
+  return Number((min + Math.random()*range).toFixed(1));
+}
+
 function seedLog() {
   const lvls = ["EMPTY","MEDIUM","FULL","EMPTY","MEDIUM","FULL","EMPTY"];
-  const ids  = Object.keys(DEMO_BINS);
+  const ids = Object.keys(DEMO_BINS);
   activityLog = [];
+
   for (let i = 0; i < 12; i++) {
     const id  = ids[i % ids.length];
     const lvl = lvls[i % lvls.length];
-    const d   = lvl==="EMPTY" ? +(20+Math.random()*8).toFixed(1)
-              : lvl==="MEDIUM"? +(10+Math.random()*9).toFixed(1)
-              :                 +(2+Math.random()*7).toFixed(1);
-    activityLog.push({ id, level:lvl, distance:d, status:lvl==="FULL"?"ALERT":"OK", time: ts() - (i*220) });
+
+    const d =
+      lvl === "EMPTY"  ? rand(20, 8) :
+      lvl === "MEDIUM" ? rand(10, 9) :
+                         rand(2, 7);
+
+    activityLog.push({
+      id,
+      level: lvl,
+      distance: Number(d) || 0,
+      status: lvl==="FULL" ? "ALERT" : "OK",
+      time: ts() - (i*220)
+    });
   }
 }
 
