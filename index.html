@@ -1,965 +1,1437 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Robo Race — Aavhaan Techfest 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Dustbin Dashboard</title>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
 <style>
-:root {
-  --cyan: #00f5ff;
-  --magenta: #ff00cc;
-  --gold: #ffc200;
-  --dark: #04040f;
-  --dark2: #080818;
-  --card-bg: rgba(0,245,255,0.04);
-  --card-border: rgba(0,245,255,0.18);
-  --white: #ffffff;
-}
+  /* ─── Reset & Base ─────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg:       #0f1117;
+    --bg2:      #1a1d27;
+    --bg3:      #22263a;
+    --card:     #1e2233;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.15);
+    --text:     #e8eaf2;
+    --muted:    #7a7f9a;
+    --hint:     #4a4f6a;
+    --accent:   #4f8ef7;
+    --accent2:  #3a6fd8;
+    --green:    #22c55e;
+    --yellow:   #f59e0b;
+    --red:      #ef4444;
+    --green-bg: rgba(34,197,94,0.12);
+    --yellow-bg:rgba(245,158,11,0.12);
+    --red-bg:   rgba(239,68,68,0.12);
+    --radius:   10px;
+    --radius-lg:14px;
+    --shadow:   0 4px 24px rgba(0,0,0,0.4);
+  }
 
-html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
 
-body {
-  font-family: 'Rajdhani', sans-serif;
-  background: var(--dark);
-  color: var(--white);
-  overflow-x: hidden;
-  cursor: none;
-}
+  /* ─── Screens ──────────────────────────────────────── */
+  .screen { display: none; }
+  .screen.active { display: flex; }
 
-/* ── CUSTOM CURSOR ── */
-.cursor {
-  width: 12px; height: 12px;
-  background: var(--cyan);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%,-50%);
-  transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
-  box-shadow: 0 0 10px var(--cyan), 0 0 30px var(--cyan);
-}
-.cursor-ring {
-  width: 36px; height: 36px;
-  border: 1.5px solid rgba(0,245,255,0.5);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%,-50%);
-  transition: all 0.15s ease;
-}
-body:hover .cursor { opacity:1; }
+  /* ─── Login ────────────────────────────────────────── */
+  #login-screen {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 60% 30%, #1a2a4a 0%, var(--bg) 70%);
+  }
 
-/* ── PARTICLE CANVAS ── */
-#particles { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  .login-box {
+    width: 100%;
+    max-width: 380px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px;
+    box-shadow: var(--shadow);
+  }
 
-/* ── WRAPPER ── */
-.wrapper { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+  .login-logo {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #1e3a6e, #2d5cb8);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
 
-/* ══════════════════════════════
-   HEADER — Shri Ram Group
-══════════════════════════════ */
-.site-header {
-  background: #fff;
-  position: relative;
-  z-index: 10;
-  animation: slideDown 0.6s ease both;
-}
+  .login-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+  .login-sub   { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 28px; }
 
-@keyframes slideDown {
-  from { transform: translateY(-100%); opacity:0; }
-  to   { transform: translateY(0);     opacity:1; }
-}
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: .04em; }
 
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 28px;
-  border-bottom: 2px solid #e8e8e8;
-}
+  input[type="email"],
+  input[type="password"],
+  input[type="text"] {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.15); }
+  input::placeholder { color: var(--hint); }
 
-.nba-badge {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  border: 3px solid #1a7a8a;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  font-size: 7px; color: #1a7a8a; font-weight:700;
-  line-height:1.2; text-align:center;
-  transition: transform 0.3s;
-}
-.nba-badge:hover { transform: rotate(10deg) scale(1.1); }
-.nba-badge .big { font-size: 20px; font-weight:900; }
+  .btn {
+    width: 100%;
+    padding: 11px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    letter-spacing: .02em;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost  { background: var(--bg2); color: var(--muted); border: 1px solid var(--border); margin-top: 10px; }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+  .btn-sm { width: auto; padding: 7px 16px; font-size: 13px; }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+  .btn-success { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .btn-success:hover { background: rgba(34,197,94,0.25); }
 
-.divider { width:2px; height:62px; background: #f5a623; margin:0 16px; }
+  .err-msg { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 18px; }
+  .login-footer { font-size: 12px; color: var(--hint); text-align: center; margin-top: 20px; }
 
-.center-brand { text-align:center; flex:1; }
-.brand-estd { font-size:8px; color:#777; letter-spacing:3px; }
-.brand-main {
-  font-family:'Rajdhani',sans-serif;
-  font-size: 34px; font-weight:900;
-  color: #0d0d2b; letter-spacing:1px; line-height:1;
-}
-.brand-city {
-  font-size:13px; font-weight:700;
-  color: #f5a623; letter-spacing:4px; margin-top:2px;
-}
+  /* ─── Dashboard Layout ─────────────────────────────── */
+  #dashboard-screen {
+    flex-direction: column;
+    min-height: 100vh;
+  }
 
-.years-badge {
-  border: 2px solid #0d1f6b;
-  border-radius:6px; padding:6px 14px;
-  text-align:center; color:#0d1f6b;
-  transition: box-shadow 0.3s;
-}
-.years-badge:hover { box-shadow: 0 0 16px rgba(13,31,107,0.3); }
-.years-num { font-size:32px; font-weight:900; line-height:1; }
-.years-num sup { font-size:14px; }
-.years-line { height:2px; background:#f5a623; margin:3px 0; }
-.years-text { font-size:7px; letter-spacing:1.5px; font-weight:700; }
+  /* Topbar */
+  .topbar {
+    height: 58px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-.nav-strip {
-  background: #0d0d2b;
-  text-align:center; padding:9px 20px;
-  font-size:12px; font-weight:700; letter-spacing:2px;
-  color:#fff;
-}
-.nav-strip .sep { color: #f5a623; margin:0 6px; }
+  .topbar-logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #1e3a6e, #2d5cb8);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
 
-/* ══════════════════════════════
-   AAVHAAN HERO BANNER
-══════════════════════════════ */
-.aavhaan-band {
-  background: linear-gradient(180deg, #0c1535 0%, #091428 100%);
-  padding: 18px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 3px solid rgba(0,245,255,0.2);
-  animation: fadeIn 0.8s 0.3s ease both;
-}
+  .topbar-title { font-size: 16px; font-weight: 700; }
 
-@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .live-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--green-bg);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 500;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-.aavhaan-logo-area { display:flex; align-items:center; gap:14px; }
+  .offline-pill {
+    background: var(--red-bg);
+    border-color: rgba(239,68,68,0.25);
+    color: var(--red);
+  }
+  .offline-pill .live-dot { background: var(--red); animation: none; }
 
-.aavhaan-wordmark {
-  font-family:'Orbitron',monospace;
-  font-size:11px; letter-spacing:4px;
-  color: rgba(255,255,255,0.6); font-weight:700;
-  margin-bottom:4px;
-}
-.aavhaan-name {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:42px; line-height:1;
-  background: linear-gradient(90deg, #a855f7, #ec4899, #f97316, #eab308);
-  -webkit-background-clip: text; -webkit-text-fill-color:transparent;
-  filter: drop-shadow(0 0 8px rgba(168,85,247,0.5));
-}
-.aavhaan-year {
-  font-family:'Orbitron',monospace;
-  font-size:12px; color: var(--gold); letter-spacing:2px;
-  margin-top:2px;
-}
+  .topbar-spacer { flex: 1; }
 
-.techfest-word {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:52px; letter-spacing:4px;
-  color:#fff;
-  text-shadow: 0 0 30px rgba(255,255,255,0.2);
-}
+  .user-info { font-size: 13px; color: var(--muted); }
 
-.aavhaan-logos { display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
-.aavhaan-logos .lbadge {
-  font-size:8px; background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
-  padding:3px 8px; border-radius:3px; color:#ccc; letter-spacing:1px;
-}
+  /* Sidebar + Content */
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
 
-/* ══════════════════════════════
-   ROBO RACE HERO
-══════════════════════════════ */
-.race-hero {
-  position:relative; overflow:hidden;
-  background: linear-gradient(135deg, #040410 0%, #0a0a20 40%, #100820 70%, #040410 100%);
-  padding: 60px 40px 50px;
-  text-align:center;
-}
+  .sidebar {
+    width: 220px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
 
-.race-hero::before {
-  content:'';
-  position:absolute; inset:0;
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0,245,255,0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 60% at 10% 50%, rgba(255,0,204,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 90% 50%, rgba(255,194,0,0.04) 0%, transparent 60%);
-}
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .15s;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .nav-item svg { flex-shrink: 0; opacity: .7; }
+  .nav-item.active svg { opacity: 1; }
 
-/* Animated race lines */
-.race-lines {
-  position:absolute; bottom:0; left:0; right:0; height:3px;
-  overflow:hidden;
-}
-.race-lines::before {
-  content:'';
-  position:absolute; top:0; left:-100%;
-  width:200%; height:100%;
-  background: linear-gradient(90deg, transparent 0%, var(--cyan) 40%, var(--gold) 60%, transparent 100%);
-  animation: raceLine 2.5s linear infinite;
-}
-@keyframes raceLine { to { left: 100%; } }
+  .nav-section { font-size: 11px; color: var(--hint); letter-spacing: .08em; padding: 14px 12px 6px; }
 
-.robo-eyebrow {
-  font-family:'Orbitron',monospace;
-  font-size:12px; letter-spacing:8px;
-  color: var(--magenta);
-  text-shadow: 0 0 15px var(--magenta);
-  margin-bottom:10px;
-  animation: fadeIn 0.8s 0.5s both;
-}
+  .sidebar-bottom { margin-top: auto; }
 
-.robo-title {
-  position:relative; z-index:2;
-  line-height:0.9;
-  animation: fadeIn 0.8s 0.6s both;
-}
+  /* Main content */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 28px 40px;
+    background: var(--bg);
+  }
 
-.robo-text {
-  font-family:'Bebas Neue',sans-serif;
-  font-size: 100px;
-  color:#fff;
-  letter-spacing:6px;
-  display:block;
-  text-shadow: 0 0 40px rgba(255,255,255,0.1);
-}
+  /* ─── Page Views ───────────────────────────────────── */
+  .page-view { display: none; }
+  .page-view.active { display: block; }
 
-.race-text {
-  font-family:'Bebas Neue',sans-serif;
-  font-size: 100px;
-  background: linear-gradient(90deg, var(--cyan), #00aaff);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  filter: drop-shadow(0 0 20px rgba(0,245,255,0.6));
-  letter-spacing:6px;
-  display:block;
-}
+  .page-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
 
-.tagline {
-  margin-top:16px;
-  font-size:18px; font-weight:600;
-  letter-spacing:3px; color:rgba(255,255,255,0.6);
-  animation: fadeIn 0.8s 0.9s both;
-}
-.tagline em { color: var(--gold); font-style:normal; }
+  /* ─── Stat Cards ───────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
 
-/* ══════════════════════════════
-   INFO CARDS ROW
-══════════════════════════════ */
-.info-row {
-  display:grid; grid-template-columns:1fr 1fr 1fr;
-  gap:0;
-  border-top: 1px solid rgba(0,245,255,0.15);
-  border-bottom: 1px solid rgba(0,245,255,0.15);
-  animation: fadeIn 0.8s 1s both;
-}
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+  }
 
-.info-card {
-  background: var(--card-bg);
-  padding: 20px 24px;
-  text-align:center;
-  border-right: 1px solid rgba(0,245,255,0.12);
-  position:relative; overflow:hidden;
-  transition: background 0.3s, transform 0.3s;
-  cursor: default;
-}
-.info-card:last-child { border-right:none; }
-.info-card::before {
-  content:'';
-  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
-  width:0; height:2px;
-  background: var(--cyan);
-  transition: width 0.4s ease;
-}
-.info-card:hover { background: rgba(0,245,255,0.08); transform:translateY(-3px); }
-.info-card:hover::before { width:80%; }
+  .stat-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
 
-.info-icon { font-size:28px; margin-bottom:6px; display:block; }
-.info-label {
-  font-family:'Orbitron',monospace;
-  font-size:10px; letter-spacing:3px;
-  color: var(--cyan); margin-bottom:6px;
-}
-.info-value {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:26px; color:#fff; letter-spacing:2px;
-}
-.info-sub { font-size:12px; color:rgba(255,255,255,0.5); margin-top:2px; }
+  .stat-val {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
 
-/* ══════════════════════════════
-   MAIN CONTENT
-══════════════════════════════ */
-.main-content {
-  padding: 40px 32px;
-  background: linear-gradient(180deg, var(--dark2) 0%, var(--dark) 100%);
-}
+  .stat-label { font-size: 12px; color: var(--muted); }
+  .stat-change { font-size: 12px; margin-top: 6px; }
+  .stat-change.up { color: var(--red); }
+  .stat-change.ok { color: var(--green); }
 
-/* Section heading */
-.sec-heading {
-  display:flex; align-items:center; gap:12px;
-  margin-bottom:20px;
-}
-.sec-heading-line { flex:1; height:1px; background:linear-gradient(90deg, rgba(0,245,255,0.4), transparent); }
-.sec-heading-text {
-  font-family:'Orbitron',monospace;
-  font-size:13px; letter-spacing:4px;
-  color: var(--cyan);
-  text-shadow: 0 0 10px rgba(0,245,255,0.4);
-}
-.sec-heading-line.right { background:linear-gradient(270deg, rgba(0,245,255,0.4), transparent); }
+  /* ─── Section Headers ──────────────────────────────── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .section-hint  { font-size: 12px; color: var(--muted); }
 
-/* ── ROUNDS ── */
-.rounds-grid {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
-  margin-bottom:36px;
-}
+  /* ─── Bins Grid ────────────────────────────────────── */
+  .bins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
 
-.round-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius:8px; padding:20px 16px;
-  text-align:center; position:relative; overflow:hidden;
-  transition: all 0.35s cubic-bezier(.25,.8,.25,1);
-  cursor:default;
-}
-.round-card::after {
-  content:'';
-  position:absolute; top:0; left:0; right:0; height:2px;
-  background: linear-gradient(90deg, var(--cyan), var(--magenta));
-  transform: scaleX(0); transform-origin:left;
-  transition: transform 0.4s ease;
-}
-.round-card:hover { transform:translateY(-6px); border-color:var(--cyan); box-shadow:0 12px 40px rgba(0,245,255,0.15); }
-.round-card:hover::after { transform:scaleX(1); }
+  .bin-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .bin-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .bin-card.full-alert { border-color: rgba(239,68,68,0.4); }
+  .bin-card.selected  { border-color: var(--accent); border-width: 1.5px; }
 
-.round-num {
-  font-family:'Orbitron',monospace;
-  font-size:10px; color: var(--cyan); letter-spacing:3px; margin-bottom:8px;
-}
-.round-icon { font-size:32px; margin-bottom:8px; display:block; }
-.round-name {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:20px; letter-spacing:2px; color:#fff; margin-bottom:4px;
-}
-.round-desc { font-size:12px; color:rgba(255,255,255,0.5); line-height:1.5; }
+  .bin-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
 
-/* ── TIME SECTION ── */
-.time-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:16px;
-  margin-bottom:36px;
-}
-.time-card {
-  background: var(--card-bg);
-  border:1px solid var(--card-border);
-  border-radius:8px; padding:22px 20px;
-  text-align:center;
-  transition: all 0.3s;
-  position:relative; overflow:hidden;
-}
-.time-card::before {
-  content:'';
-  position:absolute; inset:0;
-  background:radial-gradient(ellipse at center top, rgba(0,245,255,0.05), transparent 70%);
-  opacity:0; transition:opacity 0.3s;
-}
-.time-card:hover { border-color:var(--gold); box-shadow:0 0 30px rgba(255,194,0,0.1); }
-.time-card:hover::before { opacity:1; }
-.time-round-label { font-size:11px; letter-spacing:3px; color:rgba(255,255,255,0.5); margin-bottom:8px; text-transform:uppercase; }
-.time-value {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:42px; letter-spacing:2px;
-  color: var(--gold);
-  text-shadow:0 0 20px rgba(255,194,0,0.4);
-}
-.time-unit { font-size:12px; color:rgba(255,255,255,0.4); letter-spacing:2px; margin-top:2px; }
+  .bin-id { font-size: 15px; font-weight: 700; }
+  .bin-loc { font-size: 12px; color: var(--muted); margin-top: 1px; }
 
-/* ── SPECS ── */
-.specs-grid {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
-  margin-bottom:36px;
-}
-.spec-card {
-  background: var(--card-bg);
-  border:1px solid var(--card-border);
-  border-radius:8px; padding:18px;
-  text-align:center;
-  transition:all 0.3s;
-}
-.spec-card:hover { border-color:var(--magenta); box-shadow:0 0 24px rgba(255,0,204,0.12); transform:scale(1.03); }
-.spec-icon { font-size:26px; margin-bottom:8px; }
-.spec-label { font-size:10px; letter-spacing:3px; color:rgba(255,255,255,0.45); margin-bottom:6px; text-transform:uppercase; }
-.spec-value {
-  font-family:'Bebas Neue',sans-serif;
-  font-size:32px; color:#fff; letter-spacing:2px;
-  line-height:1;
-}
-.spec-unit { font-size:13px; color: var(--cyan); }
+  .bin-visual-wrap { display: flex; justify-content: center; margin: 10px 0 14px; }
 
-/* ── RULES (Accordion) ── */
-.rules-list { margin-bottom:36px; }
+  .bin-svg-wrap { position: relative; width: 60px; height: 80px; }
 
-.rule-item {
-  border:1px solid var(--card-border);
-  border-radius:8px; margin-bottom:8px;
-  overflow:hidden;
-  transition: border-color 0.3s;
-}
-.rule-item.open { border-color: var(--cyan); }
+  .fill-bar {
+    background: var(--card);
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .fill-bar-inner { height: 100%; border-radius: 4px; transition: width .8s ease; }
 
-.rule-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px;
-  background: var(--card-bg);
-  cursor:pointer;
-  transition: background 0.3s;
-  user-select:none;
-}
-.rule-header:hover { background: rgba(0,245,255,0.08); }
+  .bin-meta { display: flex; align-items: center; justify-content: space-between; }
+  .bin-dist { font-size: 12px; color: var(--muted); }
+  .bin-time { font-size: 11px; color: var(--hint); }
 
-.rule-header-left { display:flex; align-items:center; gap:14px; }
-.rule-header-icon { font-size:20px; }
-.rule-header-title {
-  font-family:'Orbitron',monospace;
-  font-size:12px; letter-spacing:2px; color:#fff;
-}
+  /* ─── Badges ───────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .badge-empty  { background: var(--green-bg);  color: var(--green);  }
+  .badge-medium { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-full   { background: var(--red-bg);    color: var(--red);    }
+  .badge-alert  { background: var(--red-bg);    color: var(--red);    animation: pulse 1.2s ease-in-out infinite; }
+  .badge-ok     { background: var(--green-bg);  color: var(--green);  }
+  .badge-blue   { background: rgba(79,142,247,0.12); color: var(--accent); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 
-.rule-chevron {
-  color: var(--cyan); font-size:14px;
-  transition: transform 0.3s ease;
-}
-.rule-item.open .rule-chevron { transform: rotate(180deg); }
+  /* ─── Detail Panel ─────────────────────────────────── */
+  .detail-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
 
-.rule-body {
-  max-height:0; overflow:hidden;
-  transition: max-height 0.4s ease, padding 0.3s;
-  padding: 0 20px;
-  background: rgba(0,0,0,0.3);
-}
-.rule-body.open { max-height:300px; padding:16px 20px; }
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
 
-.rule-body ul { list-style:none; }
-.rule-body ul li {
-  font-size:14px; color:rgba(255,255,255,0.75);
-  padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.05);
-  display:flex; align-items:flex-start; gap:10px; line-height:1.5;
-}
-.rule-body ul li:last-child { border-bottom:none; }
-.rule-body ul li::before { content:'▸'; color:var(--cyan); flex-shrink:0; margin-top:1px; }
+  .detail-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
 
-/* ── SCORING ── */
-.scoring-section { margin-bottom:36px; }
-.scoring-pills {
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-}
-.s-pill {
-  background: rgba(0,245,255,0.06);
-  border:1px solid rgba(0,245,255,0.25);
-  color: var(--cyan);
-  padding:10px 22px; border-radius:30px;
-  font-family:'Orbitron',monospace;
-  font-size:11px; letter-spacing:2px; font-weight:700;
-  transition: all 0.3s; cursor:default;
-}
-.s-pill:hover {
-  background: rgba(0,245,255,0.15);
-  border-color: var(--cyan);
-  transform:translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0,245,255,0.2);
-  color:#fff;
-}
+  .detail-meta { flex: 1; }
+  .detail-id   { font-size: 18px; font-weight: 700; }
+  .detail-sub  { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
-/* ── RULES HIGHLIGHTS (Static) ── */
-.highlights-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:14px;
-  margin-bottom:36px;
-}
-.highlight-item {
-  background: rgba(255,0,204,0.04);
-  border:1px solid rgba(255,0,204,0.15);
-  border-radius:8px; padding:16px;
-  display:flex; align-items:center; gap:12px;
-  transition:all 0.3s;
-}
-.highlight-item:hover { border-color:var(--magenta); background:rgba(255,0,204,0.08); transform:translateX(4px); }
-.highlight-icon { font-size:22px; flex-shrink:0; }
-.highlight-text { font-size:14px; color:rgba(255,255,255,0.8); line-height:1.4; }
+  .detail-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
 
-/* ══════════════════════════════
-   CONTACT / FOOTER
-══════════════════════════════ */
-.contact-section {
-  background: linear-gradient(135deg, #08081a, #0c0c22);
-  border-top: 2px solid rgba(0,245,255,0.2);
-  padding:28px 36px;
-  display:flex; justify-content:space-between; align-items:center;
-  gap:20px; flex-wrap:wrap;
-}
+  .mini-stat {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+  }
+  .mini-stat-val { font-size: 20px; font-weight: 700; }
+  .mini-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-.organizer-info { }
-.org-label { font-size:10px; letter-spacing:3px; color:rgba(255,255,255,0.4); margin-bottom:6px; }
-.org-name {
-  font-family:'Orbitron',monospace;
-  font-size:15px; font-weight:700; color:#fff; letter-spacing:2px;
-}
-.org-sub { font-size:12px; color: var(--cyan); margin-top:2px; letter-spacing:1px; }
+  /* ─── Level Visualizer ─────────────────────────────── */
+  .level-viz {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .level-viz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .level-viz-title  { font-size: 12px; color: var(--muted); }
+  .level-viz-val    { font-size: 13px; font-weight: 600; }
+  .level-track      { background: var(--bg3); border-radius: 6px; height: 12px; overflow: hidden; }
+  .level-fill       { height: 100%; border-radius: 6px; transition: width .8s ease; }
 
-.coordinators { text-align:right; }
-.coord-label {
-  font-family:'Orbitron',monospace;
-  font-size:10px; letter-spacing:3px;
-  color: var(--cyan); margin-bottom:10px;
-}
-.coord-item {
-  display:flex; align-items:center; justify-content:flex-end;
-  gap:14px; margin-bottom:6px;
-  padding:8px 14px;
-  border:1px solid rgba(0,245,255,0.1);
-  border-radius:6px;
-  transition:all 0.3s; cursor:default;
-}
-.coord-item:hover { border-color:var(--cyan); background:rgba(0,245,255,0.05); transform:translateX(-4px); }
-.coord-name { font-size:14px; font-weight:700; color:#fff; }
-.coord-phone { font-family:'Orbitron',monospace; font-size:12px; color:var(--cyan); letter-spacing:1px; }
+  /* ─── Firebase Path Box ────────────────────────────── */
+  .code-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .code-key   { color: #7fb3f5; }
+  .code-str   { color: #9ee8a2; }
+  .code-num   { color: #f9c86d; }
+  .code-path  { color: var(--hint); }
 
-/* ── BOTTOM BAR ── */
-.bottom-bar {
-  background: #080818;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 12px 28px;
-  display:flex; align-items:center; justify-content:space-between;
-  flex-wrap:wrap; gap:8px;
-  font-size:12px; color:rgba(255,255,255,0.6);
-}
-.bottom-bar a { color:rgba(255,255,255,0.6); text-decoration:none; }
-.bottom-bar span { margin:0 8px; color:rgba(255,255,255,0.2); }
+  /* ─── Alert Banner ─────────────────────────────────── */
+  .alert-banner {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .alert-icon { color: var(--red); flex-shrink: 0; }
+  .alert-title { font-size: 14px; font-weight: 600; color: var(--red); }
+  .alert-sub   { font-size: 12px; color: rgba(239,68,68,0.7); margin-top: 2px; }
 
-/* ══════════════════════════════
-   SCROLL REVEAL
-══════════════════════════════ */
-.reveal {
-  opacity:0; transform:translateY(30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.reveal.visible { opacity:1; transform:translateY(0); }
+  /* ─── Log ──────────────────────────────────────────── */
+  .log-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
 
-/* Stagger children */
-.reveal-stagger > * {
-  opacity:0; transform:translateY(20px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay:0.05s; }
-.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay:0.15s; }
-.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay:0.25s; }
-.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay:0.35s; }
-.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay:0.45s; }
+  .log-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-row:hover { background: var(--bg2); }
 
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .log-dot-empty  { background: var(--green); }
+  .log-dot-medium { background: var(--yellow); }
+  .log-dot-full   { background: var(--red); }
+
+  .log-id    { font-size: 13px; font-weight: 600; min-width: 72px; }
+  .log-level { font-size: 13px; color: var(--muted); flex: 1; }
+  .log-dist  { font-size: 12px; color: var(--hint); min-width: 60px; }
+  .log-time  { font-size: 11px; color: var(--hint); min-width: 60px; text-align: right; }
+
+  /* ─── Table ────────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--hint);
+    letter-spacing: .07em;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    font-weight: 600;
+  }
+  .data-table td {
+    padding: 13px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--bg2); }
+
+  /* ─── Settings ─────────────────────────────────────── */
+  .settings-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+  .settings-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .settings-sub   { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+  .settings-row   { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .settings-row:last-child { margin-bottom: 0; }
+  .settings-row label { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+  .range-row { display: flex; align-items: center; gap: 12px; }
+  .range-row input[type="range"] { flex: 1; }
+  .range-val { font-size: 13px; font-weight: 600; min-width: 40px; }
+  .settings-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .cfg-status { font-size: 13px; margin-top: 10px; min-height: 20px; }
+  .cfg-ok  { color: var(--green); }
+  .cfg-err { color: var(--red); }
+
+  /* ─── Toast ────────────────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    z-index: 9999;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* ─── Loading ──────────────────────────────────────── */
+  #loading-screen {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2.5px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Responsive ───────────────────────────────────── */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .detail-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .main-content { padding: 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Custom cursor -->
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+<!-- ══════════════ LOADING ══════════════ -->
+<div id="loading-screen" class="screen active">
+  <div class="spinner"></div>
+  <p style="font-size:14px;color:var(--muted)">Firebase connect ho raha hai...</p>
+</div>
 
-<!-- Particle canvas -->
-<canvas id="particles"></canvas>
-
-<!-- ════════════════════ HEADER ════════════════════ -->
-<div class="site-header">
-  <div class="header-top">
-    <div class="nba-badge">
-      <div style="font-size:6px;letter-spacing:1px;">SRIT · CS, EC</div>
-      <div class="big">NBA</div>
-      <div style="font-size:6px;color:#777;">ACCREDITED BY</div>
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen" class="screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7fb3f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      </svg>
     </div>
+    <h1 class="login-title">Smart Dustbin</h1>
+    <p class="login-sub">Waste Management Dashboard</p>
 
-    <div class="divider"></div>
-
-    <div class="center-brand">
-      <div class="brand-estd">⚙ &nbsp; ESTD 2001 &nbsp; ⚙</div>
-      <div class="brand-main">SHRI RAM GROUP</div>
-      <div class="brand-city">J A B A L P U R</div>
+    <div class="form-group">
+      <label>EMAIL</label>
+      <input type="email" id="login-email" placeholder="admin@smartbin.com" />
     </div>
-
-    <div class="divider"></div>
-
-    <div class="years-badge">
-      <div class="years-num">25<sup>th</sup></div>
-      <div class="years-line"></div>
-      <div class="years-text">YEARS OF EXCELLENCE</div>
+    <div class="form-group">
+      <label>PASSWORD</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
     </div>
-  </div>
-
-  <div class="nav-strip">
-    ENGINEERING <span class="sep">|</span>
-    PHARMACY <span class="sep">|</span>
-    MANAGEMENT <span class="sep">|</span>
-    COMPUTER APPLICATION <span class="sep">|</span>
-    LAW <span class="sep">|</span>
-    COMMERCE <span class="sep">|</span>
-    ARTS <span class="sep">|</span>
-    SCIENCE
+    <div id="login-err" class="err-msg"></div>
+    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign in</button>
+    <button class="btn btn-ghost"   onclick="doDemo()">Demo mode se enter karo (no Firebase needed)</button>
+    <p class="login-footer">Firebase Realtime Database se connected</p>
   </div>
 </div>
 
-<!-- ════════════════════ AAVHAAN BAND ════════════════════ -->
-<div class="aavhaan-band">
-  <div class="aavhaan-logo-area">
-    <div>
-      <div class="aavhaan-wordmark">✦ PRESENTS ✦</div>
-      <div class="aavhaan-name">aavhaan</div>
-      <div class="aavhaan-year">TECHFEST 2026</div>
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div id="dashboard-screen" class="screen">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7fb3f5" stroke-width="2" stroke-linecap="round">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/>
+      </svg>
     </div>
-  </div>
-  <div class="techfest-word">TECHFEST</div>
-  <div class="aavhaan-logos">
-    <div class="lbadge">MoE's INNOVATION CELL</div>
-    <div class="lbadge">INSTITUTION'S INNOVATION COUNCIL</div>
-    <div class="lbadge">NIRF RANKED</div>
-  </div>
-</div>
-
-<!-- ════════════════════ ROBO RACE HERO ════════════════════ -->
-<div class="race-hero">
-  <div class="race-lines"></div>
-  <div class="robo-eyebrow">✦ &nbsp; AAVHAAN 2026 &nbsp; PRESENTS &nbsp; ✦</div>
-  <div class="robo-title">
-    <span class="robo-text">ROBO</span>
-    <span class="race-text">RACE</span>
-  </div>
-  <div class="tagline">Design. &nbsp; Build. &nbsp; Race. &nbsp; <em>Dominate.</em></div>
-</div>
-
-<!-- Quick stats -->
-<div class="info-row reveal-stagger">
-  <div class="info-card">
-    <span class="info-icon">👥</span>
-    <div class="info-label">TEAM SIZE</div>
-    <div class="info-value">2–4</div>
-    <div class="info-sub">members per team</div>
-  </div>
-  <div class="info-card">
-    <span class="info-icon">⚡</span>
-    <div class="info-label">MAX VOLTAGE</div>
-    <div class="info-value">12V</div>
-    <div class="info-sub">on-board power only</div>
-  </div>
-  <div class="info-card">
-    <span class="info-icon">⚖️</span>
-    <div class="info-label">MAX WEIGHT</div>
-    <div class="info-value">2 KG</div>
-    <div class="info-sub">robot weight limit</div>
-  </div>
-</div>
-
-<!-- ════════════════════ MAIN CONTENT ════════════════════ -->
-<div class="main-content">
-
-  <!-- EVENT ROUNDS -->
-  <div class="sec-heading reveal">
-    <div class="sec-heading-line"></div>
-    <div class="sec-heading-text">EVENT ROUNDS</div>
-    <div class="sec-heading-line right"></div>
-  </div>
-
-  <div class="rounds-grid reveal-stagger">
-    <div class="round-card">
-      <div class="round-num">ROUND 01</div>
-      <span class="round-icon">🔍</span>
-      <div class="round-name">Technical Check</div>
-      <div class="round-desc">Robot inspection for specs, safety & compliance before the race begins</div>
+    <span class="topbar-title">Smart Dustbin</span>
+    <div id="conn-pill" class="live-pill">
+      <div class="live-dot"></div>
+      <span id="conn-label">Live</span>
     </div>
-    <div class="round-card">
-      <div class="round-num">ROUND 02</div>
-      <span class="round-icon">🏁</span>
-      <div class="round-name">Qualification Round</div>
-      <div class="round-desc">Plain track — qualify for the final with your best lap time</div>
-    </div>
-    <div class="round-card">
-      <div class="round-num">ROUND 03</div>
-      <span class="round-icon">🏆</span>
-      <div class="round-name">Final Race</div>
-      <div class="round-desc">Rough track — the ultimate test of speed, control & build quality</div>
-    </div>
+    <div class="topbar-spacer"></div>
+    <span class="user-info" id="user-label"></span>
+    <button class="btn btn-sm btn-ghost" style="width:auto" onclick="doLogout()">Logout</button>
   </div>
 
-  <!-- TIME -->
-  <div class="sec-heading reveal">
-    <div class="sec-heading-line"></div>
-    <div class="sec-heading-text">TIME LIMITS</div>
-    <div class="sec-heading-line right"></div>
-  </div>
+  <!-- Body -->
+  <div class="app-body">
 
-  <div class="time-grid reveal-stagger">
-    <div class="time-card">
-      <div class="time-round-label">Qualification Round</div>
-      <div class="time-value">4 MIN</div>
-      <div class="time-unit">MAXIMUM TIME</div>
-    </div>
-    <div class="time-card">
-      <div class="time-round-label">Final Round</div>
-      <div class="time-value">∞</div>
-      <div class="time-unit">NO TIME LIMIT</div>
-    </div>
-  </div>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="nav-item active" id="nav-overview" onclick="goPage('overview')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" id="nav-bins" onclick="goPage('bins')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+        Bins
+      </div>
+      <div class="nav-item" id="nav-history" onclick="goPage('history')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </div>
 
-  <!-- ROBOT SPECS -->
-  <div class="sec-heading reveal">
-    <div class="sec-heading-line"></div>
-    <div class="sec-heading-text">ROBOT SPECIFICATIONS</div>
-    <div class="sec-heading-line right"></div>
-  </div>
+      <div class="nav-section">SYSTEM</div>
+      <div class="nav-item" id="nav-settings" onclick="goPage('settings')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </div>
 
-  <div class="specs-grid reveal-stagger">
-    <div class="spec-card">
-      <div class="spec-icon">📐</div>
-      <div class="spec-label">Max Size</div>
-      <div class="spec-value">25<span class="spec-unit">×</span>25 <span class="spec-unit">cm</span></div>
-    </div>
-    <div class="spec-card">
-      <div class="spec-icon">📏</div>
-      <div class="spec-label">Max Height</div>
-      <div class="spec-value">20 <span class="spec-unit">cm</span></div>
-    </div>
-    <div class="spec-card">
-      <div class="spec-icon">🔌</div>
-      <div class="spec-label">Control Type</div>
-      <div class="spec-value" style="font-size:20px;">WIRELESS</div>
-      <div class="spec-unit" style="font-size:11px;margin-top:4px;">Wi-Fi / BT / LoRa / RF</div>
-    </div>
-  </div>
-
-  <!-- RULES ACCORDION -->
-  <div class="sec-heading reveal">
-    <div class="sec-heading-line"></div>
-    <div class="sec-heading-text">DETAILED RULES</div>
-    <div class="sec-heading-line right"></div>
-  </div>
-
-  <div class="rules-list reveal" id="rulesAccordion">
-
-    <div class="rule-item">
-      <div class="rule-header" onclick="toggleRule(this)">
-        <div class="rule-header-left">
-          <span class="rule-header-icon">🔧</span>
-          <span class="rule-header-title">BUILD RULES</span>
+      <div class="sidebar-bottom">
+        <div class="nav-item" style="color:var(--red)" onclick="doLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
         </div>
-        <span class="rule-chevron">▼</span>
       </div>
-      <div class="rule-body">
-        <ul>
-          <li>No ready-made chassis — robot must be self-built</li>
-          <li>Allowed materials: MDF, foam, cardboard, acrylic, 3D printing, etc.</li>
-          <li>No modification allowed after technical check</li>
-          <li>Robot must be safe and non-destructive to the arena</li>
-        </ul>
-      </div>
-    </div>
+    </nav>
 
-    <div class="rule-item">
-      <div class="rule-header" onclick="toggleRule(this)">
-        <div class="rule-header-left">
-          <span class="rule-header-icon">📡</span>
-          <span class="rule-header-title">CONTROL & COMMUNICATION</span>
+    <!-- Main -->
+    <main class="main-content">
+
+      <!-- ── OVERVIEW ── -->
+      <div id="page-overview" class="page-view active">
+        <h1 class="page-title">Overview</h1>
+        <p class="page-subtitle" id="overview-sub">Loading...</p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(79,142,247,0.1)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f8ef7" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+            </div>
+            <div class="stat-val" id="s-total">—</div>
+            <div class="stat-label">Total bins</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(34,197,94,0.1)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="stat-val" id="s-empty" style="color:var(--green)">—</div>
+            <div class="stat-label">Empty</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,0.1)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><line x1="12" y1="2" x2="12" y2="12"/><path d="M12 22a7 7 0 100-14"/></svg>
+            </div>
+            <div class="stat-val" id="s-medium" style="color:var(--yellow)">—</div>
+            <div class="stat-label">Medium</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(239,68,68,0.1)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="stat-val" id="s-full" style="color:var(--red)">—</div>
+            <div class="stat-label">Full / Alert</div>
+            <div class="stat-change up" id="s-alert-note"></div>
+          </div>
         </div>
-        <span class="rule-chevron">▼</span>
-      </div>
-      <div class="rule-body">
-        <ul>
-          <li>Only wireless control is allowed: Wi-Fi, Bluetooth, LoRa, Zigbee, RF, etc.</li>
-          <li>Wired control is strictly prohibited</li>
-          <li>On-board power supply only — no external power source</li>
-          <li>Max voltage: 12V</li>
-        </ul>
-      </div>
-    </div>
 
-    <div class="rule-item">
-      <div class="rule-header" onclick="toggleRule(this)">
-        <div class="rule-header-left">
-          <span class="rule-header-icon">💻</span>
-          <span class="rule-header-title">TECHNOLOGY & COMPONENTS</span>
+        <div class="section-header">
+          <span class="section-title">Live bin status</span>
+          <span class="section-hint" id="last-refresh">—</span>
         </div>
-        <span class="rule-chevron">▼</span>
-      </div>
-      <div class="rule-body">
-        <ul>
-          <li>Allowed controllers: Arduino, ESP, STM, Raspberry Pi, etc.</li>
-          <li>Any standard electronic components are permitted</li>
-          <li>All components must be properly secured within the robot frame</li>
-        </ul>
-      </div>
-    </div>
+        <div class="bins-grid" id="bins-grid-overview"></div>
 
-    <div class="rule-item">
-      <div class="rule-header" onclick="toggleRule(this)">
-        <div class="rule-header-left">
-          <span class="rule-header-icon">⚖️</span>
-          <span class="rule-header-title">GENERAL RULES</span>
+        <div class="section-header">
+          <span class="section-title">Recent activity</span>
+          <span class="section-hint">Last 6 events</span>
         </div>
-        <span class="rule-chevron">▼</span>
+        <div class="log-container" id="log-recent"></div>
       </div>
-      <div class="rule-body">
-        <ul>
-          <li>No arena damage allowed — teams responsible for any damage caused</li>
-          <li>Judges' decision is final and binding</li>
-          <li>Any violation of rules leads to immediate disqualification</li>
-          <li>Team must report to the venue 30 minutes before their slot</li>
-          <li>College ID or registration proof is mandatory</li>
-        </ul>
+
+      <!-- ── BINS ── -->
+      <div id="page-bins" class="page-view">
+        <h1 class="page-title">Bins</h1>
+        <p class="page-subtitle">Select a bin to view details and Firebase data</p>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px" id="bin-selector"></div>
+        <div id="bin-detail-panel"></div>
       </div>
-    </div>
 
+      <!-- ── HISTORY ── -->
+      <div id="page-history" class="page-view">
+        <h1 class="page-title">History</h1>
+        <p class="page-subtitle">Full activity log — all status changes</p>
+
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap" id="history-filters">
+          <button class="btn btn-sm btn-ghost active-filter" onclick="setFilter('ALL',this)" style="width:auto">All</button>
+          <button class="btn btn-sm btn-ghost" onclick="setFilter('FULL',this)" style="width:auto;color:var(--red)">Full alerts</button>
+          <button class="btn btn-sm btn-ghost" onclick="setFilter('MEDIUM',this)" style="width:auto;color:var(--yellow)">Medium</button>
+          <button class="btn btn-sm btn-ghost" onclick="setFilter('EMPTY',this)" style="width:auto;color:var(--green)">Empty</button>
+        </div>
+
+        <div class="log-container">
+          <table class="data-table" id="history-table">
+            <thead>
+              <tr>
+                <th>BIN ID</th>
+                <th>LEVEL</th>
+                <th>DISTANCE</th>
+                <th>STATUS</th>
+                <th>TIME</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div id="page-settings" class="page-view">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Firebase config aur system thresholds</p>
+
+        <div class="settings-section">
+          <h3 class="settings-title">Firebase Configuration</h3>
+          <p class="settings-sub">Apna Firebase project ka config yahan daalo</p>
+
+          <div class="settings-row">
+            <label>PROJECT DATABASE URL</label>
+            <input type="text" id="cfg-url" placeholder="https://your-project-default-rtdb.firebaseio.com/" />
+          </div>
+          <div class="settings-row">
+            <label>API KEY</label>
+            <input type="text" id="cfg-key" placeholder="AIzaSy..." />
+          </div>
+          <div class="settings-row">
+            <label>AUTH DOMAIN</label>
+            <input type="text" id="cfg-domain" placeholder="your-project.firebaseapp.com" />
+          </div>
+          <div class="settings-row">
+            <label>DATABASE PATH (Bins root)</label>
+            <input type="text" id="cfg-path" value="/Bins" />
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-sm btn-primary" style="width:auto" onclick="saveConfig()">Save Config</button>
+            <button class="btn btn-sm btn-ghost"   style="width:auto" onclick="testConn()">Test Connection</button>
+          </div>
+          <div class="cfg-status" id="cfg-status"></div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-title">Alert Thresholds</h3>
+          <p class="settings-sub">ESP32 firmware se match karo</p>
+
+          <div class="settings-row">
+            <label>PERSON DETECTION RANGE (cm)</label>
+            <div class="range-row">
+              <input type="range" min="10" max="60" value="20" step="1" id="th-person"
+                oninput="document.getElementById('th-p-v').textContent=this.value" />
+              <span class="range-val" id="th-p-v">20</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label>EMPTY ABOVE (cm)</label>
+            <div class="range-row">
+              <input type="range" min="15" max="45" value="20" step="1" id="th-empty"
+                oninput="document.getElementById('th-e-v').textContent=this.value" />
+              <span class="range-val" id="th-e-v">20</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label>FULL BELOW (cm)</label>
+            <div class="range-row">
+              <input type="range" min="2" max="15" value="10" step="1" id="th-full"
+                oninput="document.getElementById('th-f-v').textContent=this.value" />
+              <span class="range-val" id="th-f-v">10</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label>LID OPEN DURATION (seconds)</label>
+            <div class="range-row">
+              <input type="range" min="1" max="10" value="3" step="1" id="th-lid"
+                oninput="document.getElementById('th-l-v').textContent=this.value" />
+              <span class="range-val" id="th-l-v">3</span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-primary" style="width:auto;margin-top:6px" onclick="saveThresholds()">Save Thresholds</button>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="settings-title">About</h3>
+          <p class="settings-sub">System information</p>
+          <div class="code-box">
+            <span class="code-path">Version:</span> <span class="code-str">1.0.0</span><br>
+            <span class="code-path">Mode:</span>    <span id="about-mode" class="code-str">—</span><br>
+            <span class="code-path">Bins path:</span> <span class="code-str">/Bins/{BIN_ID}/</span><br>
+            <span class="code-path">Fields:</span>  <span class="code-num">level, distance, status, lastUpdate</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
-
-  <!-- SCORING -->
-  <div class="sec-heading reveal">
-    <div class="sec-heading-line"></div>
-    <div class="sec-heading-text">SCORING CRITERIA</div>
-    <div class="sec-heading-line right"></div>
-  </div>
-
-  <div class="scoring-section reveal">
-    <div class="scoring-pills">
-      <div class="s-pill">🔧 BUILD</div>
-      <div class="s-pill">⚙️ COMPONENTS</div>
-      <div class="s-pill">🏗️ ARCHITECTURE</div>
-      <div class="s-pill">🎨 CREATIVITY</div>
-      <div class="s-pill">🏁 RACE PERFORMANCE</div>
-    </div>
-  </div>
-
-  <!-- RULE HIGHLIGHTS -->
-  <div class="sec-heading reveal">
-    <div class="sec-heading-line"></div>
-    <div class="sec-heading-text">RULES HIGHLIGHTS</div>
-    <div class="sec-heading-line right"></div>
-  </div>
-
-  <div class="highlights-grid reveal-stagger">
-    <div class="highlight-item">
-      <span class="highlight-icon">🛡️</span>
-      <span class="highlight-text">No arena damage allowed</span>
-    </div>
-    <div class="highlight-item">
-      <span class="highlight-icon">⚙️</span>
-      <span class="highlight-text">No modification after technical check</span>
-    </div>
-    <div class="highlight-item">
-      <span class="highlight-icon">⚖️</span>
-      <span class="highlight-text">Judges' decision is final</span>
-    </div>
-    <div class="highlight-item">
-      <span class="highlight-icon">🚫</span>
-      <span class="highlight-text">Violation leads to disqualification</span>
-    </div>
-  </div>
-
 </div>
 
-<!-- ════════════════════ CONTACT ════════════════════ -->
-<div class="contact-section reveal">
-  <div class="organizer-info">
-    <div class="org-label">ORGANIZED BY</div>
-    <div class="org-name">⚙ TEAM IOTRONICS</div>
-    <div class="org-sub">The Robotics Club</div>
-    <div style="margin-top:10px;">
-      <div class="org-label">HOSTED BY</div>
-      <div class="org-name" style="font-size:13px;">SHRI RAM GROUP OF INSTITUTIONS</div>
-    </div>
-  </div>
+<!-- Toast -->
+<div id="toast"></div>
 
-  <div class="coordinators">
-    <div class="coord-label">EVENT COORDINATORS</div>
-    <div class="coord-item">
-      <span class="coord-name">Chris Alex Francis</span>
-      <span class="coord-phone">📞 7389391711</span>
-    </div>
-    <div class="coord-item">
-      <span class="coord-name">Amit Payasi</span>
-      <span class="coord-phone">📞 9302031109</span>
-    </div>
-  </div>
-</div>
+<!-- ══════════════ SCRIPT ══════════════ -->
+<script>
+/* ───────────────────────────────────────────
+   FIREBASE CONFIG  ← APNA DAALO YAHAN
+   ─────────────────────────────────────────── */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBKe9JcSdwxzMwZulkZruhoxX4S6rNk90g",
+  authDomain:        "smart-been.firebaseapp.com",
+  databaseURL:       "https://smart-been-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "smart-been",
+  storageBucket:     "smart-been.firebasestorage.app",
+  messagingSenderId: "251660841816",
+  appId:             "1:251660841816:web:47508f4bf3cba71c71ab2d"
+};
 
-<!-- ════════════════════ BOTTOM BAR ════════════════════ -->
-<div class="bottom-bar">
-  <span>📍 Near ITI, Madhotal, Jabalpur</span>
-  <span>📞 9755042292, 9755042293</span>
-  <span>✉ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="41282f272e013233283526332e34316f2f2435">[email&#160;protected]</a></span>
-  <span>🌐 www.sritgroup.net</span>
-</div>
+/* ───────────────────────────────────────────
+   DEMO DATA
+   ─────────────────────────────────────────── */
+const DEMO_BINS = {
+  "A5X-01": { level:"EMPTY",  distance:24.3, status:"OK",    lastUpdate: ts()-30,  location:"Block A Gate 1" },
+  "A5X-02": { level:"MEDIUM", distance:13.7, status:"OK",    lastUpdate: ts()-120, location:"Block B Entrance" },
+  "A5X-03": { level:"FULL",   distance:5.9,  status:"ALERT", lastUpdate: ts()-8,   location:"Main Street Bin" },
+  "A5X-04": { level:"EMPTY",  distance:22.1, status:"OK",    lastUpdate: ts()-400, location:"Park South" },
+  "A5X-05": { level:"MEDIUM", distance:11.4, status:"OK",    lastUpdate: ts()-55,  location:"Market Area" },
+  "A5X-06": { level:"FULL",   distance:7.1,  status:"ALERT", lastUpdate: ts()-3,   location:"School Zone" },
+};
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ── Custom Cursor ──
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
-(function animRing(){
-  rx += (mx-rx)*0.12; ry += (my-ry)*0.12;
-  ring.style.left=rx+'px'; ring.style.top=ry+'px';
-  requestAnimationFrame(animRing);
-})();
-document.querySelectorAll('a,button,.rule-header,.info-card,.round-card,.coord-item,.s-pill').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{ cursor.style.transform='translate(-50%,-50%) scale(2.5)'; cursor.style.background='var(--magenta)'; });
-  el.addEventListener('mouseleave',()=>{ cursor.style.transform='translate(-50%,-50%) scale(1)'; cursor.style.background='var(--cyan)'; });
-});
+/* ───────────────────────────────────────────
+   STATE
+   ─────────────────────────────────────────── */
+let demoMode    = false;
+let binsData    = {};
+let activityLog = [];
+let currentPage = "overview";
+let selectedBin = null;
+let historyFilter = "ALL";
+let liveTimer   = null;
+let fbApp = null, fbAuth = null, fbDb = null;
 
-// ── Particle System ──
-const canvas = document.getElementById('particles');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-window.addEventListener('resize',()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
+/* ───────────────────────────────────────────
+   UTILS
+   ─────────────────────────────────────────── */
+function ts() { return Math.floor(Date.now() / 1000); }
 
-const PARTICLE_COUNT = 60;
-const particles = Array.from({length:PARTICLE_COUNT},()=>({
-  x: Math.random()*canvas.width,
-  y: Math.random()*canvas.height,
-  r: Math.random()*1.5+0.3,
-  vx:(Math.random()-0.5)*0.3,
-  vy:(Math.random()-0.5)*0.3,
-  alpha:Math.random()*0.4+0.1,
-  color: Math.random()>0.5 ? '0,245,255' : '255,0,204'
-}));
-
-function drawParticles(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  particles.forEach(p=>{
-    p.x+=p.vx; p.y+=p.vy;
-    if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0;
-    if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${p.color},${p.alpha})`;
-    ctx.fill();
-  });
-  requestAnimationFrame(drawParticles);
+function timeSince(t) {
+  const s = ts() - t;
+  if (s < 5)    return "just now";
+  if (s < 60)   return s + "s ago";
+  if (s < 3600) return Math.floor(s/60) + "m ago";
+  return Math.floor(s/3600) + "h ago";
 }
-drawParticles();
 
-// ── Scroll Reveal ──
-const revealEls = document.querySelectorAll('.reveal, .reveal-stagger');
-const io = new IntersectionObserver(entries=>{
-  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
-},{threshold:0.1});
-revealEls.forEach(el=>io.observe(el));
+function levelPct(b) {
+  const d = b.distance;
+  if (b.level === "EMPTY")  return Math.max(5,  Math.min(28, Math.round((25 - d) * 4 + 5)));
+  if (b.level === "MEDIUM") return Math.max(32, Math.min(68, Math.round((20 - d) * 4 + 32)));
+  return Math.max(72, Math.min(97, Math.round((10 - d) * 3 + 72)));
+}
 
-// ── Rule Accordion ──
-function toggleRule(header){
-  const item = header.closest('.rule-item');
-  const body = item.querySelector('.rule-body');
-  const isOpen = item.classList.contains('open');
-  // close all
-  document.querySelectorA
+function levelColor(level) {
+  return level==="EMPTY"?"#22c55e":level==="MEDIUM"?"#f59e0b":"#ef4444";
+}
+
+function badgeHTML(level) {
+  const c = level.toLowerCase();
+  const dot = `<span class="badge-dot" style="background:${levelColor(level)}"></span>`;
+  return `<span class="badge badge-${c}">${dot}${level}</span>`;
+}
+
+function statusBadge(status) {
+  return `<span class="badge badge-${status.toLowerCase()}">${status}</span>`;
+}
+
+function showToast(msg, dur=2800) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove("show"), dur);
+}
+
+function showScreen(id) {
+  ["loading","login","dashboard"].forEach(s => {
+    const el = document.getElementById(s+"-screen");
+    el.classList.remove("active");
+    el.style.display = "none";
+  });
+  const el = document.getElementById(id+"-screen");
+  el.style.display = id === "dashboard" ? "flex" : "flex";
+  el.classList.add("active");
+}
+
+/* ───────────────────────────────────────────
+   FIREBASE INIT
+   ─────────────────────────────────────────── */
+function initFirebase() {
+  try {
+    if (!firebase || !firebase.initializeApp) throw new Error("SDK missing");
+    fbApp  = firebase.initializeApp(FIREBASE_CONFIG);
+    fbAuth = firebase.auth();
+    fbDb   = firebase.database();
+    fbAuth.onAuthStateChanged(user => {
+      if (user) enterDashboard(user.email, false);
+      else      showScreen("login");
+    });
+  } catch(e) {
+    console.warn("Firebase init failed:", e);
+    showScreen("login");
+  }
+}
+
+/* ───────────────────────────────────────────
+   LOGIN / LOGOUT
+   ─────────────────────────────────────────── */
+function doLogin() {
+  const email = document.getElementById("login-email").value.trim();
+  const pass  = document.getElementById("login-pass").value;
+  const err   = document.getElementById("login-err");
+  const btn   = document.getElementById("login-btn");
+  err.textContent = "";
+
+  if (!email) { err.textContent = "Email daalo"; return; }
+  if (!pass)  { err.textContent = "Password daalo"; return; }
+  if (pass.length < 6) { err.textContent = "Password kam se kam 6 characters ka ho"; return; }
+
+  btn.textContent = "Signing in...";
+  btn.disabled = true;
+
+  if (fbAuth) {
+    fbAuth.signInWithEmailAndPassword(email, pass).catch(e => {
+      err.textContent = friendlyErr(e.code);
+      btn.textContent = "Sign in";
+      btn.disabled = false;
+    });
+  } else {
+    setTimeout(() => {
+      if (email.includes("@") && pass.length >= 6) {
+        enterDashboard(email, false);
+      } else {
+        err.textContent = "Email ya password sahi nahi";
+        btn.textContent = "Sign in";
+        btn.disabled = false;
+      }
+    }, 1000);
+  }
+}
+
+function doDemo() {
+  demoMode = true;
+  enterDashboard("demo@smartbin.com", true);
+}
+
+function doLogout() {
+  if (fbAuth && !demoMode) fbAuth.signOut();
+  clearInterval(liveTimer);
+  demoMode = false;
+  binsData = {};
+  activityLog = [];
+  selectedBin = null;
+  document.getElementById("login-btn").textContent = "Sign in";
+  document.getElementById("login-btn").disabled = false;
+  document.getElementById("login-err").textContent = "";
+  showScreen("login");
+}
+
+function friendlyErr(code) {
+  const map = {
+    "auth/user-not-found":        "Yeh email registered nahi hai",
+    "auth/wrong-password":        "Password galat hai",
+    "auth/invalid-email":         "Email format sahi nahi",
+    "auth/too-many-requests":     "Zyada attempts — thodi der baad try karo",
+    "auth/network-request-failed":"Internet check karo",
+  };
+  return map[code] || "Login nahi hua, dobara try karo";
+}
+
+/* ───────────────────────────────────────────
+   ENTER DASHBOARD
+   ─────────────────────────────────────────── */
+function enterDashboard(email, isDemo) {
+  showScreen("dashboard");
+  document.getElementById("user-label").textContent = email;
+  document.getElementById("about-mode").textContent = isDemo ? "Demo (simulated)" : "Firebase Live";
+  selectedBin = null;
+
+  if (isDemo || !fbDb) {
+    demoMode = true;
+    binsData = JSON.parse(JSON.stringify(DEMO_BINS));
+    seedLog();
+    startDemoLive();
+    setConnStatus(true, "Demo");
+    renderAll();
+    showToast("Demo mode — live simulation active hai");
+  } else {
+    listenFirebase();
+    setConnStatus(true, "Live");
+  }
+}
+
+function setConnStatus(online, label) {
+  const pill = document.getElementById("conn-pill");
+  const lbl  = document.getElementById("conn-label");
+  pill.className = "live-pill" + (online ? "" : " offline-pill");
+  lbl.textContent = label;
+}
+
+/* ───────────────────────────────────────────
+   FIREBASE LISTENER
+   ─────────────────────────────────────────── */
+function listenFirebase() {
+  fbDb.ref("/Bins").on("value", snap => {
+    const data = snap.val() || {};
+    Object.entries(data).forEach(([id, bin]) => {
+      const old = binsData[id];
+      binsData[id] = bin;
+      if (old && old.level !== bin.level) {
+        pushLog(id, bin);
+      }
+    });
+    if (!selectedBin && Object.keys(binsData).length) {
+      selectedBin = Object.keys(binsData)[0];
+    }
+    renderAll();
+    setConnStatus(true, "Live");
+  }, err => {
+    console.error("Firebase read error:", err);
+    setConnStatus(false, "Offline");
+    showToast("Firebase read error — demo mode pe switch ho raha hai");
+    demoMode = true;
+    binsData = JSON.parse(JSON.stringify(DEMO_BINS));
+    seedLog();
+    startDemoLive();
+    renderAll();
+  });
+}
+
+/* ───────────────────────────────────────────
+   DEMO LIVE SIMULATION
+   ─────────────────────────────────────────── */
+function seedLog() {
+  const lvls = ["EMPTY","MEDIUM","FULL","EMPTY","MEDIUM","FULL","EMPTY"];
+  const ids  = Object.keys(DEMO_BINS);
+  activityLog = [];
+  for (let i = 0; i < 12; i++) {
+    const id  = ids[i % ids.length];
+    const lvl = lvls[i % lvls.length];
+    const d   = lvl==="EMPTY" ? +(20+Math.random()*8).toFixed(1)
+              : lvl==="MEDIUM"? +(10+Math.random()*9).toFixed(1)
+              :                 +(2+Math.random()*7).toFixed(1);
+    activityLog.push({ id, level:lvl, distance:d, status:lvl==="FULL"?"ALERT":"OK", time: ts() - (i*220) });
+  }
+}
+
+function pushLog(id, bin) {
+  activityLog.unshift({ id, level:bin.level, distance:bin.distance, status:bin.status, time:ts() });
+  if (activityLog.length > 80) activityLog.pop();
+}
+
+function startDemoLive() {
+  clearInterval(liveTimer);
+  liveTimer = setInterval(() => {
+    const ids  = Object.keys(binsData);
+    const id   = ids[Math.floor(Math.random() * ids.length)];
+    const lvls = ["EMPTY","MEDIUM","FULL"];
+    const nl   = lvls[Math.floor(Math.random() * lvls.length)];
+    const old  = binsData[id].level;
+    const d    = nl==="EMPTY" ? +(20+Math.random()*8).toFixed(1)
+               : nl==="MEDIUM"? +(10+Math.random()*9).toFixed(1)
+               :                +(2+Math.random()*7).toFixed(1);
+    binsData[id] = { ...binsData[id], level:nl, distance:d, status:nl==="FULL"?"ALERT":"OK", lastUpdate:ts() };
+    if (old !== nl) {
+      pushLog(id, binsData[id]);
+      showToast(`${id} → ${nl} (${d} cm)`);
+    }
+    renderAll();
+  }, 4500);
+}
+
+/* ───────────────────────────────────────────
+   RENDER ALL
+   ─────────────────────────────────────────── */
+function renderAll() {
+  updateStats();
+  renderBinsGridOverview();
+  renderLogRecent();
+  if (currentPage === "bins")    renderBinsPage();
+  if (currentPage === "history") renderHistoryTable();
+  document.getElementById("last-refresh").textContent = "Updated " + timeSince(ts());
+}
+
+/* ───────────────────────────────────────────
+   STATS
+   ─────────────────────────────────────────── */
+function updateStats() {
+  const all = Object.values(binsData);
+  document.getElementById("s-total").textContent  = all.length;
+  document.getElementById("s-empty").textContent  = all.filter(b=>b.level==="EMPTY").length;
+  document.getElementById("s-medium").textContent = all.filter(b=>b.level==="MEDIUM").length;
+  const fullCnt = all.filter(b=>b.level==="FULL").length;
+  document.getElementById("s-full").textContent   = fullCnt;
+  const note = document.getElementById("s-alert-note");
+  note.textContent = fullCnt > 0 ? `${fullCnt} bin${fullCnt>1?"s":""} need attention!` : "";
+
+  const now = new Date();
+  document.getElementById("overview-sub").textContent =
+    now.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long"}) + " — " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+}
+
+/* ───────────────────────────────────────────
+   BINS GRID (OVERVIEW)
+   ─────────────────────────────────────────── */
+function renderBinsGridOverview() {
+  const el = document.getElementById("bins-grid-overview");
+  el.innerHTML = Object.entries(binsData).map(([id, b]) => binCardHTML(id, b)).join("");
+}
+
+function binCardHTML(id, b) {
+  const pct = levelPct(b);
+  const col = levelColor(b.level);
+  const isAlert = b.status === "ALERT";
+  const isSel   = id === selectedBin;
+  return `<div class="bin-card${isAlert?" full-alert":""}${isSel?" selected":""}" onclick="selectBin('${id}')">
+    <div class="bin-card-header">
+      <div>
+        <div class="bin-id">${id}</div>
+        <div class="bin-loc">${b.location||""}</div>
+      </div>
+      ${badgeHTML(b.level)}
+    </div>
+    <div style="display:flex;justify-content:center;margin:10px 0 14px">
+      ${binSVG(pct, col)}
+    </div>
+    <div class="fill-bar"><div class="fill-bar-inner" style="width:${pct}%;background:${col}"></div></div>
+    <div class="bin-meta" style="margin-top:8px">
+      <span class="bin-dist">${b.distance.toFixed(1)} cm</span>
+      ${statusBadge(b.status)}
+      <span class="bin-time">${timeSince(b.lastUpdate)}</span>
+    </div>
+  </div>`;
+}
+
+function binSVG(pct, col) {
+  const fillH = Math.round(44 * pct / 100);
+  return `<svg width="52" height="68" viewBox="0 0 52 68" fill="none">
+    <rect x="1" y="10" width="50" height="4" rx="2" fill="#2a2f45" stroke="#3a3f5c" stroke-width="0.5"/>
+    <line x1="17" y1="10" x2="15" y2="2"  stroke="#3a3f5c" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="35" y1="10" x2="37" y2="2"  stroke="#3a3f5c" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="6"  y="14" width="40" height="52" rx="5" fill="#1e2233" stroke="#3a3f5c" stroke-width="0.8"/>
+    <rect x="6"  y="${14+(52-fillH)}" width="40" height="${fillH}" rx="${fillH>=52?5:2}" fill="${col}" opacity="0.35" style="transition:all .8s ease"/>
+    <line x1="19" y1="24" x2="19" y2="56" stroke="#3a3f5c" stroke-width="0.5" stroke-dasharray="2 3"/>
+    <line x1="26" y1="24" x2="26" y2="56" stroke="#3a3f5c" stroke-width="0.5" stroke-dasharray="2 3"/>
+    <line x1="33" y1="24" x2="33" y2="56" stroke="#3a3f5c" stroke-width="0.5" stroke-dasharray="2 3"/>
+    <rect x="6"  y="14" width="40" height="52" rx="5" fill="none" stroke="${col}" stroke-width="${pct>70?1.2:0.5}" opacity="${pct>70?0.6:0.2}" style="transition:all .8s ease"/>
+  </svg>`;
+}
+
+/* ───────────────────────────────────────────
+   SELECT BIN & NAVIGATE TO BINS
+   ─────────────────────────────────────────── */
+function selectBin(id) {
+  selectedBin = id;
+  goPage("bins");
+  renderBinsPage();
+}
+
+/* ───────────────────────────────────────────
+   BINS PAGE
+   ─────────────────────────────────────────── */
+function renderBinsPage() {
+  if (!selectedBin) selectedBin = Object.keys(binsData)[0];
+
+  const selEl = document.getElementById("bin-selector");
+  selEl.innerHTML = Object.keys(binsData).map(id => {
+    const b = binsData[id];
+    const isAlert = b.status === "ALERT";
+    const isSel   = id === selectedBin;
+    return `<button class="btn btn-sm ${isSel?"btn-primary":"btn-ghost"}"
+      style="width:auto;${isAlert&&!isSel?"color:var(--red);border-color:rgba(239,68,68,0.4)":""}"
+      onclick="selectedBin='${id}';renderBinsPage()">${id}${isAlert?" ●":""}</button>`;
+  }).join("");
+
+  const b   = binsData[selectedBin];
+  const pct = levelPct(b);
+  const col = levelColor(b.level);
+  const el  = document.getElementById("bin-detail-panel");
+
+  el.innerHTML = `
+    ${b.status==="ALERT" ? `<div class="alert-banner">
+      <svg class="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div><div class="alert-title">Bin full — alert active!</div><div class="alert-sub">Sanitation team ko notify karo. Buzzer aur Red LED on hoga.</div></div>
+    </div>` : ""}
+
+    <div class="detail-panel">
+      <div class="detail-header">
+        <div class="detail-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7fb3f5" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+        </div>
+        <div class="detail-meta">
+          <div class="detail-id">${selectedBin}</div>
+          <div class="detail-sub">${b.location||"Location not set"} · Last update: ${timeSince(b.lastUpdate)}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${badgeHTML(b.level)}
+          ${statusBadge(b.status)}
+        </div>
+      </div>
+
+      <div class="detail-stats">
+        <div class="mini-stat">
+          <div class="mini-stat-val" style="color:${col}">${b.distance.toFixed(1)}</div>
+          <div class="mini-stat-lbl">Distance (cm)</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" style="color:${col}">${pct}%</div>
+          <div class="mini-stat-lbl">Fill level</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" style="font-size:15px">${b.status}</div>
+          <div class="mini-stat-lbl">System status</div>
+        </div>
+      </div>
+
+      <div class="level-viz">
+        <div class="level-viz-header">
+          <span class="level-viz-title">Fill level</span>
+          <span class="level-viz-val" style="color:${col}">${pct}% — ${b.level}</span>
+        </div>
+        <div class="level-track"><div class="level-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--hint)">
+          <span>0% (Full)</span><span>50% (Medium)</span><span>100% (Empty)</span>
+        </div>
+      </div>
+
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px;letter-spacing:.05em">FIREBASE PATH</p>
+      <div class="code-box" style="margin-bottom:20px">
+        <span class="code-path">/Bins/${selectedBin}/</span><br>
+        &nbsp;&nbsp;<span class="code-key">level</span>: <span class="code-str">"${b.level}"</span><br>
+        &nbsp;&nbsp;<span class="code-key">distance</span>: <span class="code-num">${b.distance.toFixed(1)}</span><br>
+        &nbsp;&nbsp;<span class="code-key">status</span>: <span class="code-str">"${b.status}"</span><br>
+        &nbsp;&nbsp;<span class="code-key">lastUpdate</span>: <span class="code-num">${Math.floor(b.lastUpdate)}</span><br>
+        &nbsp;&nbsp;<span class="code-key">location</span>: <span class="code-str">"${b.location||""}"</span>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-success" style="width:auto" onclick="markEmptied('${selectedBin}')">Mark as emptied</button>
+        <button class="btn btn-sm btn-ghost"   style="width:auto" onclick="pushTest('${selectedBin}')">Simulate update</button>
+        ${demoMode ? "" : `<button class="btn btn-sm btn-ghost" style="width:auto" onclick="refreshBin('${selectedBin}')">Refresh from Firebase</button>`}
+      </div>
+    </div>
+  `;
+}
+
+function markEmptied(id) {
+  const newData = { ...binsData[id], level:"EMPTY", distance:24.0, status:"OK", lastUpdate:ts() };
+  if (!demoMode && fbDb) {
+    fbDb.ref("/Bins/"+id).update({ level:"EMPTY", distance:24.0, status:"OK", lastUpdate:ts() });
+  } else {
+    binsData[id] = newData;
+    pushLog(id, newData);
+    renderAll();
+  }
+  showToast(`${id} — emptied mark kar diya ✓`);
+}
+
+function pushTest(id) {
+  const lvls = ["EMPTY","MEDIUM","FULL"];
+  const nl   = lvls[Math.floor(Math.random()*3)];
+  const d    = nl==="EMPTY"?+(21+Math.random()*6).toFixed(1):nl==="MEDIUM"?+(10+Math.random()*9).toFixed(1):+(2+Math.random()*7).toFixed(1);
+  binsData[id] = { ...binsData[id], level:nl, distance:d, status:nl==="FULL"?"ALERT":"OK", lastUpdate:ts() };
+  pushLog(id, binsData[id]);
+  renderAll();
+  showToast(`${id} → ${nl} (${d} cm) — simulated`);
+}
+
+function refreshBin(id) {
+  if (!fbDb) return;
+  fbDb.ref("/Bins/"+id).once("value", snap => {
+    if (snap.val()) { binsData[id] = snap.val(); renderAll(); showToast(`${id} refreshed from Firebase`); }
+  });
+}
+
+/* ───────────────────────────────────────────
+   LOG / HISTORY
+   ─────────────────────────────────────────── */
+function renderLogRecent() {
+  const el = document.getElementById("log-recent");
+  const items = activityLog.slice(0, 6);
+  if (!items.length) { el.innerHTML = `<div class="log-row"><span style="color:var(--hint);font-size:13px">Koi activity nahi abhi tak</span></div>`; return; }
+  el.innerHTML = items.map(e => logRowHTML(e)).join("");
+}
+
+function renderHistoryTable() {
+  const body = document.getElementById("history-body");
+  const items = activityLog.filter(e => historyFilter==="ALL" || e.level===historyFilter);
+  if (!items.length) {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--hint);padding:20px">Koi record nahi</td></tr>`;
+    return;
+  }
+  body.innerHTML = items.map(e => `<tr>
+    <td style="font-weight:600">${e.id}</td>
+    <td>${badgeHTML(e.level)}</td>
+    <td style="color:var(--muted)">${e.distance.toFixed(1)} cm</td>
+    <td>${statusBadge(e.status)}</td>
+    <td style="color:var(--hint)">${timeSince(e.time)}</td>
+  </tr>`).join("");
+}
+
+function logRowHTML(e) {
+  return `<div class="log-row">
+    <div class="log-dot log-dot-${e.level.toLowerCase()}"></div>
+    <div class="log-id">${e.id}</div>
+    <div class="log-level">→ ${e.level}</div>
+    <div class="log-dist">${e.distance.toFixed(1)} cm</div>
+    <div class="log-time">${timeSince(e.time)}</div>
+  </div>`;
+}
+
+function setFilter(f, btn) {
+  historyFilter = f;
+  document.querySelectorAll("#history-filters .btn").forEach(b => b.classList.remove("active-filter"));
+  btn.classList.add("active-filter");
+  renderHistoryTable();
+}
+
+/* ───────────────────────────────────────────
+   NAVIGATION
+   ─────────────────────────────────────────── */
+function goPage(page) {
+  currentPage = page;
+  document.querySelectorAll(".page-view").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-"+page).classList.add("active");
+  const navEl = document.getElementById("nav-"+page);
+  if (navEl) navEl.classList.add("active");
+  if (page === "bins")    renderBinsPage();
+  if (page === "history") renderHistoryTable();
+}
+
+/* ───────────────────────────────────────────
+   SETTINGS
+   ─────────────────────────────────────────── */
+function saveConfig() {
+  const url    = document.getElementById("cfg-url").value.trim();
+  const key    = document.getElementById("cfg-key").value.trim();
+  const domain = document.getElementById("cfg-domain").value.trim();
+  const st     = document.getElementById("cfg-status");
+  if (!url || !key) { st.className="cfg-status cfg-err"; st.textContent="URL aur API Key dono chahiye"; return; }
+  localStorage.setItem("sb_firebase_url",    url);
+  localStorage.setItem("sb_firebase_key",    key);
+  localStorage.setItem("sb_firebase_domain", domain);
+  st.className = "cfg-status cfg-ok";
+  st.textContent = "Saved! Reload karo toh naya config load hoga.";
+  showToast("Firebase config save ho gaya");
+}
+
+function testConn() {
+  const st = document.getElementById("cfg-status");
+  st.className = "cfg-status"; st.textContent = "Testing connection...";
+  setTimeout(() => {
+    if (demoMode || !fbDb) {
+      st.className = "cfg-status cfg-err";
+      st.textContent = "Demo mode — real Firebase connected nahi. Apna config daalo aur reload karo.";
+    } else {
+      fbDb.ref(".info/connected").once("value", s => {
+        if (s.val()) { st.className="cfg-status cfg-ok"; st.textContent="Firebase connected hai ✓"; }
+        else         { st.className="cfg-status cfg-err"; st.textContent="Connected nahi — URL/key check karo"; }
+      });
+    }
+  }, 800);
+}
+
+function saveThresholds() {
+  const t = {
+    person: document.getElementById("th-person").value,
+    empty:  document.getElementById("th-empty").value,
+    full:   document.getElementById("th-full").value,
+    lid:    document.getElementById("th-lid").value,
+  };
+  localStorage.setItem("sb_thresholds", JSON.stringify(t));
+  showToast("Thresholds saved! ESP32 firmware mein bhi same values daalna.");
+}
+
+/* ───────────────────────────────────────────
+   BOOT
+   ─────────────────────────────────────────── */
+window.addEventListener("DOMContentLoaded", () => {
+  const saved_url = localStorage.getItem("sb_firebase_url");
+  if (saved_url) document.getElementById("cfg-url").value = saved_url;
+  const saved_key = localStorage.getItem("sb_firebase_key");
+  if (saved_key) document.getElementById("cfg-key").value = saved_key;
+  const saved_domain = localStorage.getItem("sb_firebase_domain");
+  if (saved_domain) document.getElementById("cfg-domain").value = saved_domain;
+
+  setTimeout(() => {
+    try { initFirebase(); }
+    catch(e) { showScreen("login"); }
+  }, 1000);
+});
+</script>
+</body>
+</html>
