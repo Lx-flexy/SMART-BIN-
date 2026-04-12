@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robo Race — Aavhaan Techfest 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cyan: #00f5ff;
+  --magenta: #ff00cc;
+  --gold: #ffc200;
+  --dark: #04040f;
+  --dark2: #080818;
+  --card-bg: rgba(0,245,255,0.04);
+  --card-border: rgba(0,245,255,0.18);
+  --white: #ffffff;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--dark);
+  color: var(--white);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--cyan);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+  box-shadow: 0 0 10px var(--cyan), 0 0 30px var(--cyan);
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1.5px solid rgba(0,245,255,0.5);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: all 0.15s ease;
+}
+body:hover .cursor { opacity:1; }
+
+/* ── PARTICLE CANVAS ── */
+#particles { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+
+/* ── WRAPPER ── */
+.wrapper { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+
+/* ══════════════════════════════
+   HEADER — Shri Ram Group
+══════════════════════════════ */
+.site-header {
+  background: #fff;
+  position: relative;
+  z-index: 10;
+  animation: slideDown 0.6s ease both;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity:0; }
+  to   { transform: translateY(0);     opacity:1; }
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 28px;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.nba-badge {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 3px solid #1a7a8a;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 7px; color: #1a7a8a; font-weight:700;
+  line-height:1.2; text-align:center;
+  transition: transform 0.3s;
+}
+.nba-badge:hover { transform: rotate(10deg) scale(1.1); }
+.nba-badge .big { font-size: 20px; font-weight:900; }
+
+.divider { width:2px; height:62px; background: #f5a623; margin:0 16px; }
+
+.center-brand { text-align:center; flex:1; }
+.brand-estd { font-size:8px; color:#777; letter-spacing:3px; }
+.brand-main {
+  font-family:'Rajdhani',sans-serif;
+  font-size: 34px; font-weight:900;
+  color: #0d0d2b; letter-spacing:1px; line-height:1;
+}
+.brand-city {
+  font-size:13px; font-weight:700;
+  color: #f5a623; letter-spacing:4px; margin-top:2px;
+}
+
+.years-badge {
+  border: 2px solid #0d1f6b;
+  border-radius:6px; padding:6px 14px;
+  text-align:center; color:#0d1f6b;
+  transition: box-shadow 0.3s;
+}
+.years-badge:hover { box-shadow: 0 0 16px rgba(13,31,107,0.3); }
+.years-num { font-size:32px; font-weight:900; line-height:1; }
+.years-num sup { font-size:14px; }
+.years-line { height:2px; background:#f5a623; margin:3px 0; }
+.years-text { font-size:7px; letter-spacing:1.5px; font-weight:700; }
+
+.nav-strip {
+  background: #0d0d2b;
+  text-align:center; padding:9px 20px;
+  font-size:12px; font-weight:700; letter-spacing:2px;
+  color:#fff;
+}
+.nav-strip .sep { color: #f5a623; margin:0 6px; }
+
+/* ══════════════════════════════
+   AAVHAAN HERO BANNER
+══════════════════════════════ */
+.aavhaan-band {
+  background: linear-gradient(180deg, #0c1535 0%, #091428 100%);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid rgba(0,245,255,0.2);
+  animation: fadeIn 0.8s 0.3s ease both;
+}
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+.aavhaan-logo-area { display:flex; align-items:center; gap:14px; }
+
+.aavhaan-wordmark {
+  font-family:'Orbitron',monospace;
+  font-size:11px; letter-spacing:4px;
+  color: rgba(255,255,255,0.6); font-weight:700;
+  margin-bottom:4px;
+}
+.aavhaan-name {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:42px; line-height:1;
+  background: linear-gradient(90deg, #a855f7, #ec4899, #f97316, #eab308);
+  -webkit-background-clip: text; -webkit-text-fill-color:transparent;
+  filter: drop-shadow(0 0 8px rgba(168,85,247,0.5));
+}
+.aavhaan-year {
+  font-family:'Orbitron',monospace;
+  font-size:12px; color: var(--gold); letter-spacing:2px;
+  margin-top:2px;
+}
+
+.techfest-word {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:52px; letter-spacing:4px;
+  color:#fff;
+  text-shadow: 0 0 30px rgba(255,255,255,0.2);
+}
+
+.aavhaan-logos { display:flex; flex-direction:column; gap:4px; align-items:flex-end; }
+.aavhaan-logos .lbadge {
+  font-size:8px; background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  padding:3px 8px; border-radius:3px; color:#ccc; letter-spacing:1px;
+}
+
+/* ══════════════════════════════
+   ROBO RACE HERO
+══════════════════════════════ */
+.race-hero {
+  position:relative; overflow:hidden;
+  background: linear-gradient(135deg, #040410 0%, #0a0a20 40%, #100820 70%, #040410 100%);
+  padding: 60px 40px 50px;
+  text-align:center;
+}
+
+.race-hero::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0,245,255,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 10% 50%, rgba(255,0,204,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 90% 50%, rgba(255,194,0,0.04) 0%, transparent 60%);
+}
+
+/* Animated race lines */
+.race-lines {
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  overflow:hidden;
+}
+.race-lines::before {
+  content:'';
+  position:absolute; top:0; left:-100%;
+  width:200%; height:100%;
+  background: linear-gradient(90deg, transparent 0%, var(--cyan) 40%, var(--gold) 60%, transparent 100%);
+  animation: raceLine 2.5s linear infinite;
+}
+@keyframes raceLine { to { left: 100%; } }
+
+.robo-eyebrow {
+  font-family:'Orbitron',monospace;
+  font-size:12px; letter-spacing:8px;
+  color: var(--magenta);
+  text-shadow: 0 0 15px var(--magenta);
+  margin-bottom:10px;
+  animation: fadeIn 0.8s 0.5s both;
+}
+
+.robo-title {
+  position:relative; z-index:2;
+  line-height:0.9;
+  animation: fadeIn 0.8s 0.6s both;
+}
+
+.robo-text {
+  font-family:'Bebas Neue',sans-serif;
+  font-size: 100px;
+  color:#fff;
+  letter-spacing:6px;
+  display:block;
+  text-shadow: 0 0 40px rgba(255,255,255,0.1);
+}
+
+.race-text {
+  font-family:'Bebas Neue',sans-serif;
+  font-size: 100px;
+  background: linear-gradient(90deg, var(--cyan), #00aaff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  filter: drop-shadow(0 0 20px rgba(0,245,255,0.6));
+  letter-spacing:6px;
+  display:block;
+}
+
+.tagline {
+  margin-top:16px;
+  font-size:18px; font-weight:600;
+  letter-spacing:3px; color:rgba(255,255,255,0.6);
+  animation: fadeIn 0.8s 0.9s both;
+}
+.tagline em { color: var(--gold); font-style:normal; }
+
+/* ══════════════════════════════
+   INFO CARDS ROW
+══════════════════════════════ */
+.info-row {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:0;
+  border-top: 1px solid rgba(0,245,255,0.15);
+  border-bottom: 1px solid rgba(0,245,255,0.15);
+  animation: fadeIn 0.8s 1s both;
+}
+
+.info-card {
+  background: var(--card-bg);
+  padding: 20px 24px;
+  text-align:center;
+  border-right: 1px solid rgba(0,245,255,0.12);
+  position:relative; overflow:hidden;
+  transition: background 0.3s, transform 0.3s;
+  cursor: default;
+}
+.info-card:last-child { border-right:none; }
+.info-card::before {
+  content:'';
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:0; height:2px;
+  background: var(--cyan);
+  transition: width 0.4s ease;
+}
+.info-card:hover { background: rgba(0,245,255,0.08); transform:translateY(-3px); }
+.info-card:hover::before { width:80%; }
+
+.info-icon { font-size:28px; margin-bottom:6px; display:block; }
+.info-label {
+  font-family:'Orbitron',monospace;
+  font-size:10px; letter-spacing:3px;
+  color: var(--cyan); margin-bottom:6px;
+}
+.info-value {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px; color:#fff; letter-spacing:2px;
+}
+.info-sub { font-size:12px; color:rgba(255,255,255,0.5); margin-top:2px; }
+
+/* ══════════════════════════════
+   MAIN CONTENT
+══════════════════════════════ */
+.main-content {
+  padding: 40px 32px;
+  background: linear-gradient(180deg, var(--dark2) 0%, var(--dark) 100%);
+}
+
+/* Section heading */
+.sec-heading {
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:20px;
+}
+.sec-heading-line { flex:1; height:1px; background:linear-gradient(90deg, rgba(0,245,255,0.4), transparent); }
+.sec-heading-text {
+  font-family:'Orbitron',monospace;
+  font-size:13px; letter-spacing:4px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0,245,255,0.4);
+}
+.sec-heading-line.right { background:linear-gradient(270deg, rgba(0,245,255,0.4), transparent); }
+
+/* ── ROUNDS ── */
+.rounds-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+  margin-bottom:36px;
+}
+
+.round-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius:8px; padding:20px 16px;
+  text-align:center; position:relative; overflow:hidden;
+  transition: all 0.35s cubic-bezier(.25,.8,.25,1);
+  cursor:default;
+}
+.round-card::after {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  transform: scaleX(0); transform-origin:left;
+  transition: transform 0.4s ease;
+}
+.round-card:hover { transform:translateY(-6px); border-color:var(--cyan); box-shadow:0 12px 40px rgba(0,245,255,0.15); }
+.round-card:hover::after { transform:scaleX(1); }
+
+.round-num {
+  font-family:'Orbitron',monospace;
+  font-size:10px; color: var(--cyan); letter-spacing:3px; margin-bottom:8px;
+}
+.round-icon { font-size:32px; margin-bottom:8px; display:block; }
+.round-name {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px; letter-spacing:2px; color:#fff; margin-bottom:4px;
+}
+.round-desc { font-size:12px; color:rgba(255,255,255,0.5); line-height:1.5; }
+
+/* ── TIME SECTION ── */
+.time-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  margin-bottom:36px;
+}
+.time-card {
+  background: var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:8px; padding:22px 20px;
+  text-align:center;
+  transition: all 0.3s;
+  position:relative; overflow:hidden;
+}
+.time-card::before {
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at center top, rgba(0,245,255,0.05), transparent 70%);
+  opacity:0; transition:opacity 0.3s;
+}
+.time-card:hover { border-color:var(--gold); box-shadow:0 0 30px rgba(255,194,0,0.1); }
+.time-card:hover::before { opacity:1; }
+.time-round-label { font-size:11px; letter-spacing:3px; color:rgba(255,255,255,0.5); margin-bottom:8px; text-transform:uppercase; }
+.time-value {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:42px; letter-spacing:2px;
+  color: var(--gold);
+  text-shadow:0 0 20px rgba(255,194,0,0.4);
+}
+.time-unit { font-size:12px; color:rgba(255,255,255,0.4); letter-spacing:2px; margin-top:2px; }
+
+/* ── SPECS ── */
+.specs-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+  margin-bottom:36px;
+}
+.spec-card {
+  background: var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:8px; padding:18px;
+  text-align:center;
+  transition:all 0.3s;
+}
+.spec-card:hover { border-color:var(--magenta); box-shadow:0 0 24px rgba(255,0,204,0.12); transform:scale(1.03); }
+.spec-icon { font-size:26px; margin-bottom:8px; }
+.spec-label { font-size:10px; letter-spacing:3px; color:rgba(255,255,255,0.45); margin-bottom:6px; text-transform:uppercase; }
+.spec-value {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:32px; color:#fff; letter-spacing:2px;
+  line-height:1;
+}
+.spec-unit { font-size:13px; color: var(--cyan); }
+
+/* ── RULES (Accordion) ── */
+.rules-list { margin-bottom:36px; }
+
+.rule-item {
+  border:1px solid var(--card-border);
+  border-radius:8px; margin-bottom:8px;
+  overflow:hidden;
+  transition: border-color 0.3s;
+}
+.rule-item.open { border-color: var(--cyan); }
+
+.rule-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px;
+  background: var(--card-bg);
+  cursor:pointer;
+  transition: background 0.3s;
+  user-select:none;
+}
+.rule-header:hover { background: rgba(0,245,255,0.08); }
+
+.rule-header-left { display:flex; align-items:center; gap:14px; }
+.rule-header-icon { font-size:20px; }
+.rule-header-title {
+  font-family:'Orbitron',monospace;
+  font-size:12px; letter-spacing:2px; color:#fff;
+}
+
+.rule-chevron {
+  color: var(--cyan); font-size:14px;
+  transition: transform 0.3s ease;
+}
+.rule-item.open .rule-chevron { transform: rotate(180deg); }
+
+.rule-body {
+  max-height:0; overflow:hidden;
+  transition: max-height 0.4s ease, padding 0.3s;
+  padding: 0 20px;
+  background: rgba(0,0,0,0.3);
+}
+.rule-body.open { max-height:300px; padding:16px 20px; }
+
+.rule-body ul { list-style:none; }
+.rule-body ul li {
+  font-size:14px; color:rgba(255,255,255,0.75);
+  padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex; align-items:flex-start; gap:10px; line-height:1.5;
+}
+.rule-body ul li:last-child { border-bottom:none; }
+.rule-body ul li::before { content:'▸'; color:var(--cyan); flex-shrink:0; margin-top:1px; }
+
+/* ── SCORING ── */
+.scoring-section { margin-bottom:36px; }
+.scoring-pills {
+  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+}
+.s-pill {
+  background: rgba(0,245,255,0.06);
+  border:1px solid rgba(0,245,255,0.25);
+  color: var(--cyan);
+  padding:10px 22px; border-radius:30px;
+  font-family:'Orbitron',monospace;
+  font-size:11px; letter-spacing:2px; font-weight:700;
+  transition: all 0.3s; cursor:default;
+}
+.s-pill:hover {
+  background: rgba(0,245,255,0.15);
+  border-color: var(--cyan);
+  transform:translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,245,255,0.2);
+  color:#fff;
+}
+
+/* ── RULES HIGHLIGHTS (Static) ── */
+.highlights-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:14px;
+  margin-bottom:36px;
+}
+.highlight-item {
+  background: rgba(255,0,204,0.04);
+  border:1px solid rgba(255,0,204,0.15);
+  border-radius:8px; padding:16px;
+  display:flex; align-items:center; gap:12px;
+  transition:all 0.3s;
+}
+.highlight-item:hover { border-color:var(--magenta); background:rgba(255,0,204,0.08); transform:translateX(4px); }
+.highlight-icon { font-size:22px; flex-shrink:0; }
+.highlight-text { font-size:14px; color:rgba(255,255,255,0.8); line-height:1.4; }
+
+/* ══════════════════════════════
+   CONTACT / FOOTER
+══════════════════════════════ */
+.contact-section {
+  background: linear-gradient(135deg, #08081a, #0c0c22);
+  border-top: 2px solid rgba(0,245,255,0.2);
+  padding:28px 36px;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:20px; flex-wrap:wrap;
+}
+
+.organizer-info { }
+.org-label { font-size:10px; letter-spacing:3px; color:rgba(255,255,255,0.4); margin-bottom:6px; }
+.org-name {
+  font-family:'Orbitron',monospace;
+  font-size:15px; font-weight:700; color:#fff; letter-spacing:2px;
+}
+.org-sub { font-size:12px; color: var(--cyan); margin-top:2px; letter-spacing:1px; }
+
+.coordinators { text-align:right; }
+.coord-label {
+  font-family:'Orbitron',monospace;
+  font-size:10px; letter-spacing:3px;
+  color: var(--cyan); margin-bottom:10px;
+}
+.coord-item {
+  display:flex; align-items:center; justify-content:flex-end;
+  gap:14px; margin-bottom:6px;
+  padding:8px 14px;
+  border:1px solid rgba(0,245,255,0.1);
+  border-radius:6px;
+  transition:all 0.3s; cursor:default;
+}
+.coord-item:hover { border-color:var(--cyan); background:rgba(0,245,255,0.05); transform:translateX(-4px); }
+.coord-name { font-size:14px; font-weight:700; color:#fff; }
+.coord-phone { font-family:'Orbitron',monospace; font-size:12px; color:var(--cyan); letter-spacing:1px; }
+
+/* ── BOTTOM BAR ── */
+.bottom-bar {
+  background: #080818;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 28px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:8px;
+  font-size:12px; color:rgba(255,255,255,0.6);
+}
+.bottom-bar a { color:rgba(255,255,255,0.6); text-decoration:none; }
+.bottom-bar span { margin:0 8px; color:rgba(255,255,255,0.2); }
+
+/* ══════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════ */
+.reveal {
+  opacity:0; transform:translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* Stagger children */
+.reveal-stagger > * {
+  opacity:0; transform:translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay:0.05s; }
+.reveal-stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay:0.15s; }
+.reveal-stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay:0.25s; }
+.reveal-stagger.visible > *:nth-child(4) { opacity:1; transform:none; transition-delay:0.35s; }
+.reveal-stagger.visible > *:nth-child(5) { opacity:1; transform:none; transition-delay:0.45s; }
+
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Particle canvas -->
+<canvas id="particles"></canvas>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div class="site-header">
+  <div class="header-top">
+    <div class="nba-badge">
+      <div style="font-size:6px;letter-spacing:1px;">SRIT · CS, EC</div>
+      <div class="big">NBA</div>
+      <div style="font-size:6px;color:#777;">ACCREDITED BY</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="center-brand">
+      <div class="brand-estd">⚙ &nbsp; ESTD 2001 &nbsp; ⚙</div>
+      <div class="brand-main">SHRI RAM GROUP</div>
+      <div class="brand-city">J A B A L P U R</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="years-badge">
+      <div class="years-num">25<sup>th</sup></div>
+      <div class="years-line"></div>
+      <div class="years-text">YEARS OF EXCELLENCE</div>
+    </div>
+  </div>
+
+  <div class="nav-strip">
+    ENGINEERING <span class="sep">|</span>
+    PHARMACY <span class="sep">|</span>
+    MANAGEMENT <span class="sep">|</span>
+    COMPUTER APPLICATION <span class="sep">|</span>
+    LAW <span class="sep">|</span>
+    COMMERCE <span class="sep">|</span>
+    ARTS <span class="sep">|</span>
+    SCIENCE
+  </div>
+</div>
+
+<!-- ════════════════════ AAVHAAN BAND ════════════════════ -->
+<div class="aavhaan-band">
+  <div class="aavhaan-logo-area">
+    <div>
+      <div class="aavhaan-wordmark">✦ PRESENTS ✦</div>
+      <div class="aavhaan-name">aavhaan</div>
+      <div class="aavhaan-year">TECHFEST 2026</div>
+    </div>
+  </div>
+  <div class="techfest-word">TECHFEST</div>
+  <div class="aavhaan-logos">
+    <div class="lbadge">MoE's INNOVATION CELL</div>
+    <div class="lbadge">INSTITUTION'S INNOVATION COUNCIL</div>
+    <div class="lbadge">NIRF RANKED</div>
+  </div>
+</div>
+
+<!-- ════════════════════ ROBO RACE HERO ════════════════════ -->
+<div class="race-hero">
+  <div class="race-lines"></div>
+  <div class="robo-eyebrow">✦ &nbsp; AAVHAAN 2026 &nbsp; PRESENTS &nbsp; ✦</div>
+  <div class="robo-title">
+    <span class="robo-text">ROBO</span>
+    <span class="race-text">RACE</span>
+  </div>
+  <div class="tagline">Design. &nbsp; Build. &nbsp; Race. &nbsp; <em>Dominate.</em></div>
+</div>
+
+<!-- Quick stats -->
+<div class="info-row reveal-stagger">
+  <div class="info-card">
+    <span class="info-icon">👥</span>
+    <div class="info-label">TEAM SIZE</div>
+    <div class="info-value">2–4</div>
+    <div class="info-sub">members per team</div>
+  </div>
+  <div class="info-card">
+    <span class="info-icon">⚡</span>
+    <div class="info-label">MAX VOLTAGE</div>
+    <div class="info-value">12V</div>
+    <div class="info-sub">on-board power only</div>
+  </div>
+  <div class="info-card">
+    <span class="info-icon">⚖️</span>
+    <div class="info-label">MAX WEIGHT</div>
+    <div class="info-value">2 KG</div>
+    <div class="info-sub">robot weight limit</div>
+  </div>
+</div>
+
+<!-- ════════════════════ MAIN CONTENT ════════════════════ -->
+<div class="main-content">
+
+  <!-- EVENT ROUNDS -->
+  <div class="sec-heading reveal">
+    <div class="sec-heading-line"></div>
+    <div class="sec-heading-text">EVENT ROUNDS</div>
+    <div class="sec-heading-line right"></div>
+  </div>
+
+  <div class="rounds-grid reveal-stagger">
+    <div class="round-card">
+      <div class="round-num">ROUND 01</div>
+      <span class="round-icon">🔍</span>
+      <div class="round-name">Technical Check</div>
+      <div class="round-desc">Robot inspection for specs, safety & compliance before the race begins</div>
+    </div>
+    <div class="round-card">
+      <div class="round-num">ROUND 02</div>
+      <span class="round-icon">🏁</span>
+      <div class="round-name">Qualification Round</div>
+      <div class="round-desc">Plain track — qualify for the final with your best lap time</div>
+    </div>
+    <div class="round-card">
+      <div class="round-num">ROUND 03</div>
+      <span class="round-icon">🏆</span>
+      <div class="round-name">Final Race</div>
+      <div class="round-desc">Rough track — the ultimate test of speed, control & build quality</div>
+    </div>
+  </div>
+
+  <!-- TIME -->
+  <div class="sec-heading reveal">
+    <div class="sec-heading-line"></div>
+    <div class="sec-heading-text">TIME LIMITS</div>
+    <div class="sec-heading-line right"></div>
+  </div>
+
+  <div class="time-grid reveal-stagger">
+    <div class="time-card">
+      <div class="time-round-label">Qualification Round</div>
+      <div class="time-value">4 MIN</div>
+      <div class="time-unit">MAXIMUM TIME</div>
+    </div>
+    <div class="time-card">
+      <div class="time-round-label">Final Round</div>
+      <div class="time-value">∞</div>
+      <div class="time-unit">NO TIME LIMIT</div>
+    </div>
+  </div>
+
+  <!-- ROBOT SPECS -->
+  <div class="sec-heading reveal">
+    <div class="sec-heading-line"></div>
+    <div class="sec-heading-text">ROBOT SPECIFICATIONS</div>
+    <div class="sec-heading-line right"></div>
+  </div>
+
+  <div class="specs-grid reveal-stagger">
+    <div class="spec-card">
+      <div class="spec-icon">📐</div>
+      <div class="spec-label">Max Size</div>
+      <div class="spec-value">25<span class="spec-unit">×</span>25 <span class="spec-unit">cm</span></div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-icon">📏</div>
+      <div class="spec-label">Max Height</div>
+      <div class="spec-value">20 <span class="spec-unit">cm</span></div>
+    </div>
+    <div class="spec-card">
+      <div class="spec-icon">🔌</div>
+      <div class="spec-label">Control Type</div>
+      <div class="spec-value" style="font-size:20px;">WIRELESS</div>
+      <div class="spec-unit" style="font-size:11px;margin-top:4px;">Wi-Fi / BT / LoRa / RF</div>
+    </div>
+  </div>
+
+  <!-- RULES ACCORDION -->
+  <div class="sec-heading reveal">
+    <div class="sec-heading-line"></div>
+    <div class="sec-heading-text">DETAILED RULES</div>
+    <div class="sec-heading-line right"></div>
+  </div>
+
+  <div class="rules-list reveal" id="rulesAccordion">
+
+    <div class="rule-item">
+      <div class="rule-header" onclick="toggleRule(this)">
+        <div class="rule-header-left">
+          <span class="rule-header-icon">🔧</span>
+          <span class="rule-header-title">BUILD RULES</span>
+        </div>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body">
+        <ul>
+          <li>No ready-made chassis — robot must be self-built</li>
+          <li>Allowed materials: MDF, foam, cardboard, acrylic, 3D printing, etc.</li>
+          <li>No modification allowed after technical check</li>
+          <li>Robot must be safe and non-destructive to the arena</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rule-item">
+      <div class="rule-header" onclick="toggleRule(this)">
+        <div class="rule-header-left">
+          <span class="rule-header-icon">📡</span>
+          <span class="rule-header-title">CONTROL & COMMUNICATION</span>
+        </div>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body">
+        <ul>
+          <li>Only wireless control is allowed: Wi-Fi, Bluetooth, LoRa, Zigbee, RF, etc.</li>
+          <li>Wired control is strictly prohibited</li>
+          <li>On-board power supply only — no external power source</li>
+          <li>Max voltage: 12V</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rule-item">
+      <div class="rule-header" onclick="toggleRule(this)">
+        <div class="rule-header-left">
+          <span class="rule-header-icon">💻</span>
+          <span class="rule-header-title">TECHNOLOGY & COMPONENTS</span>
+        </div>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body">
+        <ul>
+          <li>Allowed controllers: Arduino, ESP, STM, Raspberry Pi, etc.</li>
+          <li>Any standard electronic components are permitted</li>
+          <li>All components must be properly secured within the robot frame</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rule-item">
+      <div class="rule-header" onclick="toggleRule(this)">
+        <div class="rule-header-left">
+          <span class="rule-header-icon">⚖️</span>
+          <span class="rule-header-title">GENERAL RULES</span>
+        </div>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body">
+        <ul>
+          <li>No arena damage allowed — teams responsible for any damage caused</li>
+          <li>Judges' decision is final and binding</li>
+          <li>Any violation of rules leads to immediate disqualification</li>
+          <li>Team must report to the venue 30 minutes before their slot</li>
+          <li>College ID or registration proof is mandatory</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCORING -->
+  <div class="sec-heading reveal">
+    <div class="sec-heading-line"></div>
+    <div class="sec-heading-text">SCORING CRITERIA</div>
+    <div class="sec-heading-line right"></div>
+  </div>
+
+  <div class="scoring-section reveal">
+    <div class="scoring-pills">
+      <div class="s-pill">🔧 BUILD</div>
+      <div class="s-pill">⚙️ COMPONENTS</div>
+      <div class="s-pill">🏗️ ARCHITECTURE</div>
+      <div class="s-pill">🎨 CREATIVITY</div>
+      <div class="s-pill">🏁 RACE PERFORMANCE</div>
+    </div>
+  </div>
+
+  <!-- RULE HIGHLIGHTS -->
+  <div class="sec-heading reveal">
+    <div class="sec-heading-line"></div>
+    <div class="sec-heading-text">RULES HIGHLIGHTS</div>
+    <div class="sec-heading-line right"></div>
+  </div>
+
+  <div class="highlights-grid reveal-stagger">
+    <div class="highlight-item">
+      <span class="highlight-icon">🛡️</span>
+      <span class="highlight-text">No arena damage allowed</span>
+    </div>
+    <div class="highlight-item">
+      <span class="highlight-icon">⚙️</span>
+      <span class="highlight-text">No modification after technical check</span>
+    </div>
+    <div class="highlight-item">
+      <span class="highlight-icon">⚖️</span>
+      <span class="highlight-text">Judges' decision is final</span>
+    </div>
+    <div class="highlight-item">
+      <span class="highlight-icon">🚫</span>
+      <span class="highlight-text">Violation leads to disqualification</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════ CONTACT ════════════════════ -->
+<div class="contact-section reveal">
+  <div class="organizer-info">
+    <div class="org-label">ORGANIZED BY</div>
+    <div class="org-name">⚙ TEAM IOTRONICS</div>
+    <div class="org-sub">The Robotics Club</div>
+    <div style="margin-top:10px;">
+      <div class="org-label">HOSTED BY</div>
+      <div class="org-name" style="font-size:13px;">SHRI RAM GROUP OF INSTITUTIONS</div>
+    </div>
+  </div>
+
+  <div class="coordinators">
+    <div class="coord-label">EVENT COORDINATORS</div>
+    <div class="coord-item">
+      <span class="coord-name">Chris Alex Francis</span>
+      <span class="coord-phone">📞 7389391711</span>
+    </div>
+    <div class="coord-item">
+      <span class="coord-name">Amit Payasi</span>
+      <span class="coord-phone">📞 9302031109</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ BOTTOM BAR ════════════════════ -->
+<div class="bottom-bar">
+  <span>📍 Near ITI, Madhotal, Jabalpur</span>
+  <span>📞 9755042292, 9755042293</span>
+  <span>✉ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="41282f272e013233283526332e34316f2f2435">[email&#160;protected]</a></span>
+  <span>🌐 www.sritgroup.net</span>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── Custom Cursor ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+(function animRing(){
+  rx += (mx-rx)*0.12; ry += (my-ry)*0.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,.rule-header,.info-card,.round-card,.coord-item,.s-pill').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ cursor.style.transform='translate(-50%,-50%) scale(2.5)'; cursor.style.background='var(--magenta)'; });
+  el.addEventListener('mouseleave',()=>{ cursor.style.transform='translate(-50%,-50%) scale(1)'; cursor.style.background='var(--cyan)'; });
+});
+
+// ── Particle System ──
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+window.addEventListener('resize',()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
+
+const PARTICLE_COUNT = 60;
+const particles = Array.from({length:PARTICLE_COUNT},()=>({
+  x: Math.random()*canvas.width,
+  y: Math.random()*canvas.height,
+  r: Math.random()*1.5+0.3,
+  vx:(Math.random()-0.5)*0.3,
+  vy:(Math.random()-0.5)*0.3,
+  alpha:Math.random()*0.4+0.1,
+  color: Math.random()>0.5 ? '0,245,255' : '255,0,204'
+}));
+
+function drawParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0;
+    if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${p.color},${p.alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── Scroll Reveal ──
+const revealEls = document.querySelectorAll('.reveal, .reveal-stagger');
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); } });
+},{threshold:0.1});
+revealEls.forEach(el=>io.observe(el));
+
+// ── Rule Accordion ──
+function toggleRule(header){
+  const item = header.closest('.rule-item');
+  const body = item.querySelector('.rule-body');
+  const isOpen = item.classList.contains('open');
+  // close all
+  document.querySelectorA
