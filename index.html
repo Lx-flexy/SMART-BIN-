@@ -1107,30 +1107,61 @@ function seedLog() {
 }
 
 function pushLog(id, bin) {
-  activityLog.unshift({ id, level:bin.level, distance:bin.distance, status:bin.status, time:ts() });
+  activityLog.unshift({
+    id,
+    level: bin.level,
+    distance: Number(bin.distance) || 0,   // 🔥 safe
+    status: bin.status,
+    time: ts()
+  });
+
   if (activityLog.length > 80) activityLog.pop();
 }
 
+
 function startDemoLive() {
   clearInterval(liveTimer);
+
   liveTimer = setInterval(() => {
     const ids  = Object.keys(binsData);
     const id   = ids[Math.floor(Math.random() * ids.length)];
+
     const lvls = ["EMPTY","MEDIUM","FULL"];
     const nl   = lvls[Math.floor(Math.random() * lvls.length)];
+
     const old  = binsData[id].level;
-    const d    = nl==="EMPTY" ? +(20+Math.random()*8).toFixed(1)
-               : nl==="MEDIUM"? +(10+Math.random()*9).toFixed(1)
-               :                +(2+Math.random()*7).toFixed(1);
-    binsData[id] = { ...binsData[id], level:nl, distance:d, status:nl==="FULL"?"ALERT":"OK", lastUpdate:ts() };
+
+    // 🔥 SAFE DISTANCE CALCULATION
+    let d;
+
+    if (nl === "EMPTY") {
+      d = Number((20 + Math.random()*8).toFixed(1));
+    } 
+    else if (nl === "MEDIUM") {
+      d = Number((10 + Math.random()*9).toFixed(1));
+    } 
+    else {
+      d = Number((2 + Math.random()*7).toFixed(1));
+    }
+
+    // 🔥 SAFE UPDATE
+    binsData[id] = {
+      ...binsData[id],
+      level: nl,
+      distance: Number(d) || 0,
+      status: nl === "FULL" ? "ALERT" : "OK",
+      lastUpdate: ts()
+    };
+
     if (old !== nl) {
       pushLog(id, binsData[id]);
-      showToast(`${id} → ${nl} (${d} cm)`);
+      showToast(`${id} → ${nl} (${(Number(d)||0).toFixed(1)} cm)`);
     }
+
     renderAll();
+
   }, 4500);
 }
-
 /* ───────────────────────────────────────────
    RENDER ALL
    ─────────────────────────────────────────── */
