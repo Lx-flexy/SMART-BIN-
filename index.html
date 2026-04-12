@@ -9,7 +9,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
+<script>
+function safeDist(val) {
+  return (Number(val) || 0).toFixed(1);
+}
+</script>
 <style>
   /* ─── Reset & Base ─────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -842,7 +846,7 @@
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyBKe9JcSdwxzMwZulkZruhoxX4S6rNk90g",
   authDomain:        "smart-been.firebaseapp.com",
-  databaseURL:       "https://smart-been-default-rtdb.asia-southeast1.firebasedatabase.app",
+ databaseURL: "https://smart-been-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId:         "smart-been",
   storageBucket:     "smart-been.firebasestorage.app",
   messagingSenderId: "251660841816",
@@ -887,7 +891,7 @@ function timeSince(t) {
 }
 
 function levelPct(b) {
-  const d = b.distance;
+  const d = Number(b.distance) || 0;
   if (b.level === "EMPTY")  return Math.max(5,  Math.min(28, Math.round((25 - d) * 4 + 5)));
   if (b.level === "MEDIUM") return Math.max(32, Math.min(68, Math.round((20 - d) * 4 + 32)));
   return Math.max(72, Math.min(97, Math.round((10 - d) * 3 + 72)));
@@ -1218,7 +1222,7 @@ function binCardHTML(id, b) {
     </div>
     <div class="fill-bar"><div class="fill-bar-inner" style="width:${pct}%;background:${col}"></div></div>
     <div class="bin-meta" style="margin-top:8px">
-      <span class="bin-dist">${b.distance.toFixed(1)} cm</span>
+      <span class="bin-dist">${safeDist(b.distance)} cm</span>
       ${statusBadge(b.status)}
       <span class="bin-time">${timeSince(b.lastUpdate)}</span>
     </div>
@@ -1293,7 +1297,7 @@ function renderBinsPage() {
 
       <div class="detail-stats">
         <div class="mini-stat">
-          <div class="mini-stat-val" style="color:${col}">${b.distance.toFixed(1)}</div>
+          <div class="mini-stat-val" style="color:${col}">${safeDist(b.distance)}</div>
           <div class="mini-stat-lbl">Distance (cm)</div>
         </div>
         <div class="mini-stat">
@@ -1321,7 +1325,7 @@ function renderBinsPage() {
       <div class="code-box" style="margin-bottom:20px">
         <span class="code-path">/Bins/${selectedBin}/</span><br>
         &nbsp;&nbsp;<span class="code-key">level</span>: <span class="code-str">"${b.level}"</span><br>
-        &nbsp;&nbsp;<span class="code-key">distance</span>: <span class="code-num">${b.distance.toFixed(1)}</span><br>
+        &nbsp;&nbsp;<span class="code-key">distance</span>: <span class="code-num">${safeDist(b.distance)}</span><br>
         &nbsp;&nbsp;<span class="code-key">status</span>: <span class="code-str">"${b.status}"</span><br>
         &nbsp;&nbsp;<span class="code-key">lastUpdate</span>: <span class="code-num">${Math.floor(b.lastUpdate)}</span><br>
         &nbsp;&nbsp;<span class="code-key">location</span>: <span class="code-str">"${b.location||""}"</span>
@@ -1385,7 +1389,7 @@ function renderHistoryTable() {
   body.innerHTML = items.map(e => `<tr>
     <td style="font-weight:600">${e.id}</td>
     <td>${badgeHTML(e.level)}</td>
-    <td style="color:var(--muted)">${e.distance.toFixed(1)} cm</td>
+    <td style="color:var(--muted)">${safeDist(e.distance)} cm</td>
     <td>${statusBadge(e.status)}</td>
     <td style="color:var(--hint)">${timeSince(e.time)}</td>
   </tr>`).join("");
@@ -1396,7 +1400,7 @@ function logRowHTML(e) {
     <div class="log-dot log-dot-${e.level.toLowerCase()}"></div>
     <div class="log-id">${e.id}</div>
     <div class="log-level">→ ${e.level}</div>
-    <div class="log-dist">${e.distance.toFixed(1)} cm</div>
+    <div class="log-dist">${safeDist(e.distance)} cm</div>
     <div class="log-time">${timeSince(e.time)}</div>
   </div>`;
 }
@@ -1477,10 +1481,18 @@ window.addEventListener("DOMContentLoaded", () => {
   const saved_domain = localStorage.getItem("sb_firebase_domain");
   if (saved_domain) document.getElementById("cfg-domain").value = saved_domain;
 
-  setTimeout(() => {
-    try { initFirebase(); }
-    catch(e) { showScreen("login"); }
-  }, 1000);
+setTimeout(() => {
+  try {
+    if (typeof firebase !== "undefined") {
+      initFirebase();
+    } else {
+      throw new Error("Firebase SDK not loaded");
+    }
+  } catch(e) {
+    console.warn(e);
+    showScreen("login");
+  }
+}, 1000)
 });
 </script>
 </body>
