@@ -5,15 +5,14 @@ import { getStorage } from 'firebase/storage'
 import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://demo-project-default-rtdb.firebaseio.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-project",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abc123"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBKe9JcSdwxzMwZulkZruhoxX4S6rNk90g",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "smart-been.firebaseapp.com",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://smart-been-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "smart-been",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "smart-been.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "251660841816",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ||"1:251660841816:web:47508f4bf3cba71c71ab2d"
 }
-
 // Initialize app only once
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 
