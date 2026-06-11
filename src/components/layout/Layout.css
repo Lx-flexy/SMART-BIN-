@@ -1,0 +1,36 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  padding-top: var(--header-height);
+  transition: margin-left var(--transition-slow);
+  background-color: var(--bg-primary);
+}
+
+.page-content {
+  padding: var(--spacing-lg);
+  min-height: calc(100vh - var(--header-height));
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+    padding-bottom: var(--mobile-nav-height);
+  }
+
+  .page-content {
+    padding: var(--spacing-md);
+    padding-bottom: calc(var(--mobile-nav-height) + var(--spacing-md));
+  }
+}
+
+@media (max-width: 640px) {
+  .page-content {
+    padding: var(--spacing-sm);
+  }
+}

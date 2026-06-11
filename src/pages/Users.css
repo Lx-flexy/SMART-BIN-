@@ -1,0 +1,88 @@
+.users-page {
+  padding-bottom: var(--spacing-xl);
+}
+
+.users-filters {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.users-filters .search-input {
+  flex: 1;
+}
+
+.users-filters .form-select {
+  min-width: 180px;
+}
+
+.users-table-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.user-phone {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2xl);
+  gap: var(--spacing-md);
+}
+
+.access-denied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: var(--spacing-md);
+}
+
+.access-denied svg {
+  width: 64px;
+  height: 64px;
+  color: var(--color-danger);
+}
+
+.access-denied h2 {
+  color: var(--text-primary);
+}
+
+.access-denied p {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .users-filters {
+    flex-direction: column;
+  }
+
+  .users-filters .form-select {
+    width: 100%;
+  }
+}

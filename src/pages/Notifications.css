@@ -1,0 +1,106 @@
+.notifications-page {
+  padding-bottom: var(--spacing-xl);
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.notification-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-fast);
+}
+
+.notification-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.notification-item.unread {
+  background: linear-gradient(to right, var(--color-primary-50), var(--bg-card) 30%);
+  border-left: 4px solid var(--color-primary);
+}
+
+.notification-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.notification-icon.type-new_task {
+  background-color: var(--color-info-light);
+  color: var(--color-info);
+}
+
+.notification-icon.type-task_completed {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.notification-icon.type-alert {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-content h4 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.notification-content p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-xs);
+}
+
+.notification-time {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.notification-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.notification-actions .btn {
+  padding: var(--spacing-xs);
+}
+
+.notification-actions .btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 768px) {
+  .notification-item {
+    flex-direction: column;
+  }
+
+  .notification-actions {
+    align-self: flex-end;
+  }
+}
