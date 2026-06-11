@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -22,3 +23,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+=======
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
+
+# Environment variables
+.env*.local
+
+# Common ignores
+node_modules
+.next/
+.DS_Store
+>>>>>>> bc7a63e11784e20ae2b9b0f1b42530b93978e951

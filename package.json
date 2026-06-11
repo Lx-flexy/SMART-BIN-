@@ -1,21 +1,34 @@
 {
+<<<<<<< HEAD
   "name": "project",
   "private": true,
   "version": "0.0.0",
+=======
+  "name": "a5x-waste-management",
+  "version": "1.0.0",
+  "private": true,
+>>>>>>> bc7a63e11784e20ae2b9b0f1b42530b93978e951
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+<<<<<<< HEAD
     "lint": "eslint .",
+=======
+>>>>>>> bc7a63e11784e20ae2b9b0f1b42530b93978e951
     "preview": "vite preview"
   },
   "dependencies": {
     "chart.js": "^4.5.1",
+<<<<<<< HEAD
     "date-fns": "^4.4.0",
+=======
+>>>>>>> bc7a63e11784e20ae2b9b0f1b42530b93978e951
     "file-saver": "^2.0.5",
     "firebase": "^12.14.0",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
+<<<<<<< HEAD
     "react": "^19.2.6",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.6",
@@ -34,5 +47,19 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "vite": "^8.0.12"
+=======
+    "lucide-react": "^1.17.0",
+    "react": "^19",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.16.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.21",
+    "@vitejs/plugin-react": "^6.0.2",
+    "vite": "^8.0.16"
+>>>>>>> bc7a63e11784e20ae2b9b0f1b42530b93978e951
   }
 }
